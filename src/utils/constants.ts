@@ -2,13 +2,13 @@
 // CONSTANTS
 // ============================================
 
-export const API_BASE_URL = __DEV__
-  ? 'http://10.0.2.2:5000/api'
-  : 'https://api.kritijob.com/api';
+//put your device IP(for development use only, command to find IP: ipconfig | findstr "IPv4")
+const device_Ip = ""
 
-export const SOCKET_URL = __DEV__
-  ? 'http://10.0.2.2:5000'
-  : 'https://api.kritijob.com';
+export const API_BASE_URL = `http://${device_Ip}:5000/api`
+
+export const SOCKET_URL = `http://${device_Ip}:5000`
+
 
 export const ITEMS_PER_PAGE = 20;
 

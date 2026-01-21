@@ -3,6 +3,7 @@
 // ============================================
 
 import React from 'react';
+import {Text} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {EmployerDashboardScreen} from '../screens/employer/EmployerDashboardScreen';
@@ -126,7 +127,7 @@ export const EmployerNavigator: React.FC = () => {
         component={DashboardStack}
         options={{
           tabBarLabel: 'Dashboard',
-          tabBarIcon: ({color}) => <span style={{fontSize: 24}}>📊</span>,
+          tabBarIcon: ({color}) => <Text style={{fontSize: 24}}>📊</Text>,
         }}
       />
       <Tab.Screen
@@ -134,7 +135,7 @@ export const EmployerNavigator: React.FC = () => {
         component={JobsStack}
         options={{
           tabBarLabel: 'Jobs',
-          tabBarIcon: ({color}) => <span style={{fontSize: 24}}>💼</span>,
+          tabBarIcon: ({color}) => <Text style={{fontSize: 24}}>💼</Text>,
         }}
       />
       <Tab.Screen
@@ -142,7 +143,7 @@ export const EmployerNavigator: React.FC = () => {
         component={CompanyStack}
         options={{
           tabBarLabel: 'Company',
-          tabBarIcon: ({color}) => <span style={{fontSize: 24}}>🏢</span>,
+          tabBarIcon: ({color}) => <Text style={{fontSize: 24}}>🏢</Text>,
         }}
       />
       <Tab.Screen
@@ -150,7 +151,7 @@ export const EmployerNavigator: React.FC = () => {
         component={ProfileStack}
         options={{
           tabBarLabel: 'More',
-          tabBarIcon: ({color}) => <span style={{fontSize: 24}}>⚙️</span>,
+          tabBarIcon: ({color}) => <Text style={{fontSize: 24}}>⚙️</Text>,
         }}
       />
     </Tab.Navigator>

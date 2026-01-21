@@ -16,6 +16,10 @@ interface JobCardProps {
 }
 
 export const JobCard: React.FC<JobCardProps> = ({job, onPress}) => {
+  const companyName = job.company?.name || 'Company';
+  const applicantsCount = job.applicationsCount || 0;
+  const skills = job.skills || [];
+  
   return (
     <TouchableOpacity
       style={styles.card}
@@ -24,7 +28,7 @@ export const JobCard: React.FC<JobCardProps> = ({job, onPress}) => {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={styles.title}>{job.title}</Text>
-          <Text style={styles.company}>{job.company.name}</Text>
+          <Text style={styles.company}>{companyName}</Text>
         </View>
         <View style={styles.typeContainer}>
           <Text style={styles.typeText}>{job.type}</Text>
@@ -37,23 +41,25 @@ export const JobCard: React.FC<JobCardProps> = ({job, onPress}) => {
         {job.salary && <Text style={styles.detailText}>💰 {job.salary}</Text>}
       </View>
 
-      <View style={styles.skills}>
-        {job.skills.slice(0, 3).map((skill, index) => (
-          <View key={index} style={styles.skillTag}>
-            <Text style={styles.skillText}>{skill}</Text>
-          </View>
-        ))}
-        {job.skills.length > 3 && (
-          <View style={styles.skillTag}>
-            <Text style={styles.skillText}>+{job.skills.length - 3}</Text>
-          </View>
-        )}
-      </View>
+      {skills.length > 0 && (
+        <View style={styles.skills}>
+          {skills.slice(0, 3).map((skill, index) => (
+            <View key={index} style={styles.skillTag}>
+              <Text style={styles.skillText}>{skill}</Text>
+            </View>
+          ))}
+          {skills.length > 3 && (
+            <View style={styles.skillTag}>
+              <Text style={styles.skillText}>+{skills.length - 3}</Text>
+            </View>
+          )}
+        </View>
+      )}
 
       <View style={styles.footer}>
         <Text style={styles.timeText}>{formatRelativeTime(job.createdAt)}</Text>
         <Text style={styles.applicantsText}>
-          {job.applicationsCount} applicants
+          {applicantsCount} applicants
         </Text>
       </View>
     </TouchableOpacity>

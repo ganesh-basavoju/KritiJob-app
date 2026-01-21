@@ -3,6 +3,7 @@
 // ============================================
 
 import React from 'react';
+import {Text} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {JobFeedScreen} from '../screens/user/JobFeedScreen';
@@ -142,7 +143,7 @@ export const UserNavigator: React.FC = () => {
         component={JobsStack}
         options={{
           tabBarLabel: 'Jobs',
-          tabBarIcon: ({color}) => <span style={{fontSize: 24}}>💼</span>,
+          tabBarIcon: ({color}) => <Text style={{fontSize: 24}}>💼</Text>,
         }}
       />
       <Tab.Screen
@@ -150,7 +151,7 @@ export const UserNavigator: React.FC = () => {
         component={SavedStack}
         options={{
           tabBarLabel: 'Saved',
-          tabBarIcon: ({color}) => <span style={{fontSize: 24}}>❤️</span>,
+          tabBarIcon: ({color}) => <Text style={{fontSize: 24}}>❤️</Text>,
         }}
       />
       <Tab.Screen
@@ -158,7 +159,7 @@ export const UserNavigator: React.FC = () => {
         component={ApplicationsStack}
         options={{
           tabBarLabel: 'Applications',
-          tabBarIcon: ({color}) => <span style={{fontSize: 24}}>📝</span>,
+          tabBarIcon: ({color}) => <Text style={{fontSize: 24}}>📝</Text>,
         }}
       />
       <Tab.Screen
@@ -166,7 +167,7 @@ export const UserNavigator: React.FC = () => {
         component={CompaniesStack}
         options={{
           tabBarLabel: 'Companies',
-          tabBarIcon: ({color}) => <span style={{fontSize: 24}}>🏢</span>,
+          tabBarIcon: ({color}) => <Text style={{fontSize: 24}}>🏢</Text>,
         }}
       />
       <Tab.Screen
@@ -174,7 +175,7 @@ export const UserNavigator: React.FC = () => {
         component={ProfileStack}
         options={{
           tabBarLabel: 'Profile',
-          tabBarIcon: ({color}) => <span style={{fontSize: 24}}>👤</span>,
+          tabBarIcon: ({color}) => <Text style={{fontSize: 24}}>👤</Text>,
         }}
       />
     </Tab.Navigator>
