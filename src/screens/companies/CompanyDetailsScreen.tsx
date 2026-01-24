@@ -4,6 +4,7 @@
 
 import React, {useEffect} from 'react';
 import {View, Text, StyleSheet, ScrollView} from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import {useDispatch, useSelector} from 'react-redux';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {fetchCompanyById} from '../../redux/slices/companiesSlice';
@@ -45,9 +46,13 @@ export const CompanyDetailsScreen: React.FC<any> = ({route}) => {
         <View style={styles.header}>
           <Text style={styles.name}>{currentCompany.name}</Text>
           <View style={styles.detailRow}>
-            <Text style={styles.detailText}>👥 {currentCompany.employeesCount}</Text>
+            <Icon name="people-outline" size={16} color={colors.textSecondary} />
+            <Text style={styles.detailText}>{currentCompany.employeesCount}</Text>
           </View>
-          <Text style={styles.location}>📍 {currentCompany.location}</Text>
+          <View style={styles.locationRow}>
+            <Icon name="location-outline" size={16} color={colors.textSecondary} />
+            <Text style={styles.location}>{currentCompany.location}</Text>
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -87,12 +92,18 @@ const styles = StyleSheet.create({
   },
   detailRow: {
     flexDirection: 'row',
-    marginBottom: spacing.xs,
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginBottom: spacing.sm,
   },
   detailText: {
     ...typography.body2,
     color: colors.textSecondary,
-    marginRight: spacing.md,
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
   },
   location: {
     ...typography.body2,

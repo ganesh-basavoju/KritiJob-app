@@ -3,7 +3,7 @@
 // ============================================
 
 import React from 'react';
-import {Text} from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {JobFeedScreen} from '../screens/user/JobFeedScreen';
@@ -138,7 +138,13 @@ export const UserNavigator: React.FC = () => {
         component={JobsStack}
         options={{
           tabBarLabel: 'Jobs',
-          tabBarIcon: ({color}) => <Text style={{fontSize: 24}}>💼</Text>,
+          tabBarIcon: ({color, focused}) => (
+            <Icon
+              name={focused ? 'briefcase' : 'briefcase-outline'}
+              size={24}
+              color={color}
+            />
+          ),
         }}
       />
       <Tab.Screen
@@ -146,7 +152,13 @@ export const UserNavigator: React.FC = () => {
         component={SavedStack}
         options={{
           tabBarLabel: 'Saved',
-          tabBarIcon: ({color}) => <Text style={{fontSize: 24}}>❤️</Text>,
+          tabBarIcon: ({color, focused}) => (
+            <Icon
+              name={focused ? 'heart' : 'heart-outline'}
+              size={24}
+              color={color}
+            />
+          ),
         }}
       />
       <Tab.Screen
@@ -154,7 +166,13 @@ export const UserNavigator: React.FC = () => {
         component={ApplicationsStack}
         options={{
           tabBarLabel: 'Applications',
-          tabBarIcon: ({color}) => <Text style={{fontSize: 24}}>📝</Text>,
+          tabBarIcon: ({color, focused}) => (
+            <Icon
+              name={focused ? 'document-text' : 'document-text-outline'}
+              size={24}
+              color={color}
+            />
+          ),
         }}
       />
       <Tab.Screen
@@ -162,7 +180,13 @@ export const UserNavigator: React.FC = () => {
         component={CompaniesStack}
         options={{
           tabBarLabel: 'Companies',
-          tabBarIcon: ({color}) => <Text style={{fontSize: 24}}>🏢</Text>,
+          tabBarIcon: ({color, focused}) => (
+            <Icon
+              name={focused ? 'business' : 'business-outline'}
+              size={24}
+              color={color}
+            />
+          ),
         }}
       />
       <Tab.Screen
@@ -170,7 +194,13 @@ export const UserNavigator: React.FC = () => {
         component={ProfileStack}
         options={{
           tabBarLabel: 'Profile',
-          tabBarIcon: ({color}) => <Text style={{fontSize: 24}}>👤</Text>,
+          tabBarIcon: ({color, focused}) => (
+            <Icon
+              name={focused ? 'person' : 'person-outline'}
+              size={24}
+              color={color}
+            />
+          ),
         }}
       />
     </Tab.Navigator>

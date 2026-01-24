@@ -4,6 +4,7 @@
 
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import {Application} from '../../types';
 import {colors} from '../../theme/colors';
 import {spacing, borderRadius, shadows} from '../../theme/spacing';
@@ -45,7 +46,10 @@ export const ApplicantCard: React.FC<ApplicantCardProps> = ({
           <Text style={styles.name}>{application.user.name}</Text>
           <Text style={styles.email}>{application.user.email}</Text>
           {application.user.location && (
-            <Text style={styles.location}>📍 {application.user.location}</Text>
+            <View style={styles.locationRow}>
+              <Icon name="location-outline" size={14} color={colors.textSecondary} />
+              <Text style={styles.location}>{application.user.location}</Text>
+            </View>
           )}
         </View>
         <View
@@ -118,6 +122,11 @@ const styles = StyleSheet.create({
     ...typography.body2,
     color: colors.textSecondary,
     marginBottom: spacing.xs,
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
   },
   location: {
     ...typography.body2,

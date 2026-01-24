@@ -4,6 +4,7 @@
 
 import React, {useEffect, useState} from 'react';
 import {View, Text, StyleSheet, FlatList, TouchableOpacity} from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import {useDispatch, useSelector} from 'react-redux';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {
@@ -68,7 +69,7 @@ export const NotificationsScreen: React.FC<any> = () => {
       <TouchableOpacity
         style={styles.deleteButton}
         onPress={() => handleDelete(item.id)}>
-        <Text style={styles.deleteText}>✕</Text>
+        <Icon name="close-circle" size={24} color={colors.error} />
       </TouchableOpacity>
     </TouchableOpacity>
   );
