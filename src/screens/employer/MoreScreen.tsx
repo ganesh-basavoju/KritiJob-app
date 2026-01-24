@@ -49,11 +49,11 @@ export const MoreScreen: React.FC<any> = ({navigation}) => {
       id: 'profile',
       title: 'Profile Settings',
       icon: 'person-outline',
-      onPress: () => {
-        // TODO: Navigate to profile settings
-        Alert.alert('Coming Soon', 'Profile settings will be available soon');
+      // onPress: () => {
+      //   // TODO: Navigate to profile settings
+      //   Alert.alert('Coming Soon', 'Profile settings will be available soon');
+      onPress: () => navigation.navigate('EmployerProfile'),
       },
-    },
     {
       id: 'help',
       title: 'Help & Support',
