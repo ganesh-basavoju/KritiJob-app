@@ -4,6 +4,7 @@
 
 import React, {useEffect, useState} from 'react';
 import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert} from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import {useDispatch, useSelector} from 'react-redux';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {fetchJobById, saveJob, unsaveJob} from '../../redux/slices/jobsSlice';
@@ -97,7 +98,11 @@ export const JobDetailsScreen: React.FC<any> = ({navigation, route}) => {
             <Text style={styles.company}>{currentJob.company.name}</Text>
           </View>
           <TouchableOpacity onPress={handleSaveToggle}>
-            <Text style={styles.saveIcon}>{isSaved ? '❤️' : '🤍'}</Text>
+            <Icon
+              name={isSaved ? 'heart' : 'heart-outline'}
+              size={28}
+              color={isSaved ? colors.error : colors.textSecondary}
+            />
           </TouchableOpacity>
         </View>
 
@@ -143,9 +148,18 @@ export const JobDetailsScreen: React.FC<any> = ({navigation, route}) => {
           <Text style={styles.sectionTitle}>About Company</Text>
           <Text style={styles.companyName}>{currentJob.company.name}</Text>
           <Text style={styles.companyDescription}>{currentJob.company.description}</Text>
-          <Text style={styles.companyDetail}>📍 {currentJob.company.location}</Text>
-          <Text style={styles.companyDetail}>🏢 {currentJob.company.size}</Text>
-          <Text style={styles.companyDetail}>🏭 {currentJob.company.industry}</Text>
+          <View style={styles.companyDetailRow}>
+            <Icon name="location-outline" size={16} color={colors.textSecondary} />
+            <Text style={styles.companyDetail}>{currentJob.company.location}</Text>
+          </View>
+          <View style={styles.companyDetailRow}>
+            <Icon name="people-outline" size={16} color={colors.textSecondary} />
+            <Text style={styles.companyDetail}>{currentJob.company.size}</Text>
+          </View>
+          <View style={styles.companyDetailRow}>
+            <Icon name="business-outline" size={16} color={colors.textSecondary} />
+            <Text style={styles.companyDetail}>{currentJob.company.industry}</Text>
+          </View>
         </View>
 
         <View style={styles.footer}>
@@ -271,10 +285,15 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginBottom: spacing.md,
   },
+  companyDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginBottom: spacing.xs,
+  },
   companyDetail: {
     ...typography.body2,
     color: colors.textSecondary,
-    marginBottom: spacing.xs,
   },
   footer: {
     flexDirection: 'row',

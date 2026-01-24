@@ -4,6 +4,7 @@
 
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import {Job} from '../../types';
 import {colors} from '../../theme/colors';
 import {spacing, borderRadius, shadows} from '../../theme/spacing';
@@ -36,9 +37,20 @@ export const JobCard: React.FC<JobCardProps> = ({job, onPress}) => {
       </View>
 
       <View style={styles.details}>
-        <Text style={styles.detailText}>📍 {job.location}</Text>
-        <Text style={styles.detailText}>💼 {job.experience}</Text>
-        {job.salary && <Text style={styles.detailText}>💰 {job.salary}</Text>}
+        <View style={styles.detailRow}>
+          <Icon name="location-outline" size={16} color={colors.textSecondary} />
+          <Text style={styles.detailText}>{job.location}</Text>
+        </View>
+        <View style={styles.detailRow}>
+          <Icon name="briefcase-outline" size={16} color={colors.textSecondary} />
+          <Text style={styles.detailText}>{job.experience}</Text>
+        </View>
+        {job.salary && (
+          <View style={styles.detailRow}>
+            <Icon name="cash-outline" size={16} color={colors.textSecondary} />
+            <Text style={styles.detailText}>{job.salary}</Text>
+          </View>
+        )}
       </View>
 
       {skills.length > 0 && (
@@ -106,10 +118,15 @@ const styles = StyleSheet.create({
   details: {
     marginBottom: spacing.sm,
   },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+    gap: spacing.xs,
+  },
   detailText: {
     ...typography.body2,
     color: colors.textSecondary,
-    marginBottom: spacing.xs,
   },
   skills: {
     flexDirection: 'row',

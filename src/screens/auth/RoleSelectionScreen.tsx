@@ -4,6 +4,7 @@
 
 import React, {useState} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import {colors} from '../../theme/colors';
 import {spacing, borderRadius, shadows} from '../../theme/spacing';
 import {typography} from '../../theme/typography';
@@ -32,7 +33,7 @@ export const RoleSelectionScreen: React.FC<any> = ({navigation}) => {
           ]}
           onPress={() => setSelectedRole('user')}
           activeOpacity={0.7}>
-          <Text style={styles.roleIcon}>👤</Text>
+          <Icon name="person" size={48} color={colors.yellow} />
           <Text style={styles.roleTitle}>I'm looking for a job</Text>
           <Text style={styles.roleDescription}>
             Browse jobs, apply, and track your applications
@@ -46,7 +47,7 @@ export const RoleSelectionScreen: React.FC<any> = ({navigation}) => {
           ]}
           onPress={() => setSelectedRole('employer')}
           activeOpacity={0.7}>
-          <Text style={styles.roleIcon}>💼</Text>
+          <Icon name="briefcase" size={48} color={colors.yellow} />
           <Text style={styles.roleTitle}>I'm hiring</Text>
           <Text style={styles.roleDescription}>
             Post jobs and find the best candidates

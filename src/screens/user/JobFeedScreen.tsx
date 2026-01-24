@@ -4,6 +4,7 @@
 
 import React, {useEffect, useState} from 'react';
 import {View, StyleSheet, FlatList, TouchableOpacity, Text} from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import {useDispatch, useSelector} from 'react-redux';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {fetchJobs, setFilters, clearFilters} from '../../redux/slices/jobsSlice';
@@ -63,7 +64,8 @@ export const JobFeedScreen: React.FC<any> = ({navigation}) => {
           </TouchableOpacity>
         )}
         <TouchableOpacity onPress={() => setFiltersVisible(true)} style={styles.filterButton}>
-          <Text style={styles.filterText}>🔍 Filter</Text>
+          <Icon name="funnel-outline" size={18} color={colors.textPrimary} style={{marginRight: spacing.xs}} />
+          <Text style={styles.filterText}>Filter</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -137,6 +139,8 @@ const styles = StyleSheet.create({
     color: colors.error,
   },
   filterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },

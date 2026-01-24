@@ -4,6 +4,7 @@
 
 import React, {useEffect, useState} from 'react';
 import {View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Platform, Image} from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import {useDispatch, useSelector} from 'react-redux';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {launchImageLibrary} from 'react-native-image-picker';
@@ -175,7 +176,7 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
               style={styles.editAvatarButton}
               onPress={handleUploadAvatar}
             >
-              <Text style={styles.editAvatarIcon}>✏️</Text>
+              <Icon name="pencil" size={16} color={colors.textPrimary} />
             </TouchableOpacity>
           </View>
           
@@ -193,21 +194,21 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
               />
               <View style={styles.inlineActions}>
                 <TouchableOpacity onPress={() => setIsEditingTitle(false)}>
-                  <Text style={styles.inlineCancel}>✕</Text>
+                  <Icon name="close" size={20} color={colors.error} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={handleSaveTitle}>
-                  <Text style={styles.inlineSave}>✓</Text>
+                  <Icon name="checkmark" size={20} color={colors.success} />
                 </TouchableOpacity>
               </View>
             </View>
           ) : profile?.title ? (
             <TouchableOpacity style={styles.infoItem} onPress={() => setIsEditingTitle(true)}>
-              <Text style={styles.infoIcon}>💼</Text>
+              <Icon name="briefcase-outline" size={18} color={colors.textSecondary} />
               <Text style={styles.infoText}>{profile.title}</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity style={styles.infoItem} onPress={() => setIsEditingTitle(true)}>
-              <Text style={styles.infoIcon}>💼</Text>
+              <Icon name="briefcase-outline" size={18} color={colors.textSecondary} />
               <Text style={styles.addText}>Add Title</Text>
             </TouchableOpacity>
           )}
@@ -224,21 +225,21 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
               />
               <View style={styles.inlineActions}>
                 <TouchableOpacity onPress={() => setIsEditingLocation(false)}>
-                  <Text style={styles.inlineCancel}>✕</Text>
+                  <Icon name="close" size={20} color={colors.error} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={handleSaveLocation}>
-                  <Text style={styles.inlineSave}>✓</Text>
+                  <Icon name="checkmark" size={20} color={colors.success} />
                 </TouchableOpacity>
               </View>
             </View>
           ) : profile?.location ? (
             <TouchableOpacity style={styles.infoItem} onPress={() => setIsEditingLocation(true)}>
-              <Text style={styles.infoIcon}>📍</Text>
+              <Icon name="location-outline" size={18} color={colors.textSecondary} />
               <Text style={styles.infoText}>{profile.location}</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity style={styles.infoItem} onPress={() => setIsEditingLocation(true)}>
-              <Text style={styles.infoIcon}>📍</Text>
+              <Icon name="location-outline" size={18} color={colors.textSecondary} />
               <Text style={styles.addText}>Add Location</Text>
             </TouchableOpacity>
           )}
@@ -374,12 +375,10 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
           )}
         </View>
 
-        <Button
-          title="Logout"
-          onPress={handleLogout}
-          variant="outline"
-          style={styles.logoutButton}
-        />
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Icon name="log-out-outline" size={24} color={colors.error} />
+          <Text style={styles.logoutText}>Logout</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -550,8 +549,21 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.md,
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.error,
+    gap: spacing.sm,
     marginTop: spacing.lg,
     marginBottom: spacing.xl,
+  },
+  logoutText: {
+    ...typography.button,
+    color: colors.error,
   },
   inlineEditContainer: {
     flexDirection: 'row',
