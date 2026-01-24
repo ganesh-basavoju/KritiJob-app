@@ -3,7 +3,7 @@
 // ============================================
 
 import React, {useEffect} from 'react';
-import {View, Text, StyleSheet, ScrollView} from 'react-native';
+import {View, Text, StyleSheet, ScrollView, Image, Linking, TouchableOpacity} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useDispatch, useSelector} from 'react-redux';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -44,26 +44,63 @@ export const CompanyDetailsScreen: React.FC<any> = ({route}) => {
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.name}>{currentCompany.name}</Text>
-          <View style={styles.detailRow}>
-            <Icon name="people-outline" size={16} color={colors.textSecondary} />
-            <Text style={styles.detailText}>{currentCompany.employeesCount}</Text>
+          <View style={styles.logoSection}>
+            {currentCompany.logoUrl ? (
+              <Image source={{uri: currentCompany.logoUrl}} style={styles.logo} />
+            ) : (
+              <View style={styles.logoPlaceholder}>
+                <Icon name="business" size={48} color={colors.textTertiary} />
+              </View>
+            )}
           </View>
-          <View style={styles.locationRow}>
-            <Icon name="location-outline" size={16} color={colors.textSecondary} />
-            <Text style={styles.location}>{currentCompany.location}</Text>
+          
+          <Text style={styles.name}>{currentCompany.name}</Text>
+          
+          <View style={styles.statsContainer}>
+            <View style={styles.statItem}>
+              <View style={styles.iconContainer}>
+                <Icon name="people" size={20} color={colors.yellow} />
+              </View>
+              <View>
+                <Text style={styles.statLabel}>Team Size</Text>
+                <Text style={styles.statValue}>{currentCompany.employeesCount} employees</Text>
+              </View>
+            </View>
+            
+            <View style={styles.statItem}>
+              <View style={styles.iconContainer}>
+                <Icon name="location" size={20} color={colors.yellow} />
+              </View>
+              <View>
+                <Text style={styles.statLabel}>Location</Text>
+                <Text style={styles.statValue}>{currentCompany.location}</Text>
+              </View>
+            </View>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>About</Text>
+          <View style={styles.sectionHeader}>
+            <Icon name="information-circle" size={24} color={colors.yellow} />
+            <Text style={styles.sectionTitle}>About Company</Text>
+          </View>
           <Text style={styles.description}>{stripHtml(currentCompany.description)}</Text>
         </View>
 
         {currentCompany.website && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Website</Text>
-            <Text style={styles.link}>{currentCompany.website}</Text>
+            <View style={styles.sectionHeader}>
+              <Icon name="globe" size={24} color={colors.yellow} />
+              <Text style={styles.sectionTitle}>Website</Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.websiteButton}
+              onPress={() => Linking.openURL(currentCompany.website)}
+              activeOpacity={0.7}>
+              <Icon name="link" size={20} color={colors.yellow} />
+              <Text style={styles.link}>{currentCompany.website}</Text>
+              <Icon name="open-outline" size={20} color={colors.textTertiary} />
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
@@ -81,49 +118,96 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: colors.card,
-    borderRadius: borderRadius.md,
-    padding: spacing.md,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
     marginBottom: spacing.lg,
+    alignItems: 'center',
+  },
+  logoSection: {
+    marginBottom: spacing.md,
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.backgroundTertiary,
+  },
+  logoPlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.backgroundTertiary,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   name: {
     ...typography.h3,
     color: colors.textPrimary,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.lg,
+    textAlign: 'center',
   },
-  detailRow: {
+  statsContainer: {
+    width: '100%',
+    gap: spacing.md,
+  },
+  statItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
-    marginBottom: spacing.sm,
+    backgroundColor: colors.backgroundTertiary,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    gap: spacing.md,
   },
-  detailText: {
-    ...typography.body2,
-    color: colors.textSecondary,
-  },
-  locationRow: {
-    flexDirection: 'row',
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.yellow + '15',
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: spacing.xs,
   },
-  location: {
-    ...typography.body2,
-    color: colors.textSecondary,
+  statLabel: {
+    ...typography.caption,
+    color: colors.textTertiary,
+    marginBottom: spacing.xs,
+  },
+  statValue: {
+    ...typography.body1,
+    color: colors.textPrimary,
+    fontWeight: '600',
   },
   section: {
-    marginBottom: spacing.lg,
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
   },
   sectionTitle: {
     ...typography.h5,
     color: colors.textPrimary,
-    marginBottom: spacing.sm,
   },
   description: {
     ...typography.body1,
     color: colors.textSecondary,
     lineHeight: 24,
   },
+  websiteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.backgroundTertiary,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
   link: {
     ...typography.body2,
     color: colors.info,
+    flex: 1,
   },
 });

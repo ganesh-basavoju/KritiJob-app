@@ -66,6 +66,18 @@ export const uploadAvatar = createAsyncThunk(
   },
 );
 
+export const deleteResume = createAsyncThunk(
+  'user/deleteResume',
+  async (resumeId: string, {rejectWithValue}) => {
+    try {
+      await userApi.deleteResume(resumeId);
+      return resumeId;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to delete resume');
+    }
+  },
+);
+
 const userSlice = createSlice({
   name: 'user',
   initialState,

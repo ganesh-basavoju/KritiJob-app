@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import {useForm, Controller} from 'react-hook-form';
+import Icon from 'react-native-vector-icons/Ionicons';
 import {register} from '../../redux/slices/authSlice';
 import {AppDispatch, RootState} from '../../redux/store';
 import {Button} from '../../components/common/Button';
@@ -50,6 +51,12 @@ export const RegisterScreen: React.FC<any> = ({navigation, route}) => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}>
+          <Icon name="arrow-back" size={24} color={colors.textPrimary} />
+        </TouchableOpacity>
+
         <View style={styles.header}>
           <Text style={styles.title}>Create Account</Text>
           <Text style={styles.subtitle}>
@@ -183,8 +190,12 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: spacing.lg,
   },
-  header: {
+  backButton: {
     marginTop: spacing.xl,
+    marginBottom: spacing.sm,
+  },
+  header: {
+    marginTop: spacing.md,
     marginBottom: spacing.lg,
   },
   title: {

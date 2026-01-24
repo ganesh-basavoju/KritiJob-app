@@ -23,15 +23,23 @@ export const RoleSelectionScreen: React.FC<any> = ({navigation}) => {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>Join KritiJob</Text>
-        <Text style={styles.subtitle}>Choose how you want to continue</Text>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}>
+          <Icon name="arrow-back" size={24} color={colors.textPrimary} />
+        </TouchableOpacity>
+
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>Join KritiJob</Text>
+          <Text style={styles.subtitle}>Choose how you want to continue</Text>
+        </View>
 
         <TouchableOpacity
           style={[
             styles.roleCard,
-            selectedRole === 'user' && styles.roleCardSelected,
+            selectedRole === 'candidate' && styles.roleCardSelected,
           ]}
-          onPress={() => setSelectedRole('user')}
+          onPress={() => setSelectedRole('candidate')}
           activeOpacity={0.7}>
           <Icon name="person" size={48} color={colors.yellow} />
           <Text style={styles.roleTitle}>I'm looking for a job</Text>
@@ -83,6 +91,15 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: spacing.lg,
     justifyContent: 'center',
+  },
+  backButton: {
+    position: 'absolute',
+    top: spacing.xl * 1.5,
+    left: spacing.lg,
+    zIndex: 1,
+  },
+  titleContainer: {
+    marginBottom: spacing.xl,
   },
   title: {
     ...typography.h2,

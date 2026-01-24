@@ -3,12 +3,13 @@
 // ============================================
 
 import React, {useEffect, useState} from 'react';
-import {View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Platform, Image} from 'react-native';
+import {View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Platform, Image, Linking} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useDispatch, useSelector} from 'react-redux';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {launchImageLibrary} from 'react-native-image-picker';
-import {fetchUserProfile, updateUserProfile, uploadAvatar} from '../../redux/slices/userSlice';
+import * as DocumentPicker from '@react-native-documents/picker';
+import {fetchUserProfile, updateUserProfile, uploadAvatar, uploadResume, deleteResume} from '../../redux/slices/userSlice';
 import {logout} from '../../redux/slices/authSlice';
 import {AppDispatch, RootState} from '../../redux/store';
 import {Button} from '../../components/common/Button';
@@ -138,6 +139,75 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
     } catch (error: any) {
       Alert.alert('Error', error || 'Failed to update location');
     }
+  };
+
+  const handleUploadResume = async () => {
+    try {
+      const result = await DocumentPicker.pick({
+        type: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+        copyTo: 'cachesDirectory',
+      });
+
+      if (!result || result.length === 0) {
+        return;
+      }
+
+      const file = result[0];
+      console.log('Selected file:', file);
+      
+      const formData = new FormData();
+      formData.append('resume', {
+        uri: file.fileCopyUri || file.uri,
+        type: file.type || 'application/pdf',
+        name: file.name || 'resume.pdf',
+      } as any);
+
+      console.log('Uploading resume...');
+      const response = await dispatch(uploadResume(formData)).unwrap();
+      console.log('Upload response:', response);
+      
+      await loadProfile();
+      Alert.alert('Success', 'Resume uploaded successfully');
+    } catch (error: any) {
+      // User cancelled or error occurred
+      if (error?.message?.includes('cancel')) {
+        return;
+      }
+      console.error('Resume upload error:', error);
+      Alert.alert('Error', error?.message || error || 'Failed to upload resume');
+    }
+  };
+
+  const handleDeleteResume = async (resumeId: string) => {
+    Alert.alert(
+      'Delete Resume',
+      'Are you sure you want to delete this resume?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await dispatch(deleteResume(resumeId)).unwrap();
+              await loadProfile();
+              Alert.alert('Success', 'Resume deleted successfully');
+            } catch (error: any) {
+              Alert.alert('Error', error || 'Failed to delete resume');
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  const handleOpenResume = (url: string) => {
+    Linking.openURL(url).catch(() => {
+      Alert.alert('Error', 'Could not open resume');
+    });
   };
 
   if (loading && !profile) {
@@ -320,6 +390,50 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
               ) : (
                 <Text style={styles.sectionContent}>No skills added yet.</Text>
               )}
+            </View>
+          )}
+        </View>
+
+        {/* Resume Section */}
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Resume</Text>
+            <TouchableOpacity onPress={handleUploadResume}>
+              <Icon name="add-circle" size={24} color={colors.yellow} />
+            </TouchableOpacity>
+          </View>
+          
+          {profile?.resumes && profile.resumes.length > 0 ? (
+            <View style={styles.resumeList}>
+              {profile.resumes.map((resume, index) => (
+                <View key={resume._id || index} style={styles.resumeItem}>
+                  <TouchableOpacity 
+                    style={styles.resumeInfo}
+                    onPress={() => handleOpenResume(resume.url)}
+                  >
+                    <Icon name="document-text" size={24} color={colors.yellow} />
+                    <View style={styles.resumeDetails}>
+                      <Text style={styles.resumeName} numberOfLines={1}>
+                        {resume.name || 'Resume.pdf'}
+                      </Text>
+                      <Text style={styles.resumeDate}>
+                        {new Date(resume.uploadedAt).toLocaleDateString()}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleDeleteResume(resume._id)}>
+                    <Icon name="trash-outline" size={20} color={colors.error} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <View style={styles.emptyState}>
+              <Icon name="document-outline" size={48} color={colors.textTertiary} />
+              <Text style={styles.emptyStateText}>No resumes uploaded yet</Text>
+              <Text style={styles.emptyStateSubtext}>
+                Tap the + icon to upload your resume
+              </Text>
             </View>
           )}
         </View>
@@ -576,5 +690,50 @@ const styles = StyleSheet.create({
   inlineActions: {
     flexDirection: 'row',
     gap: spacing.sm,
+  },
+  resumeList: {
+    gap: spacing.md,
+  },
+  resumeItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.backgroundTertiary,
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
+  },
+  resumeInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: spacing.md,
+  },
+  resumeDetails: {
+    flex: 1,
+  },
+  resumeName: {
+    ...typography.body1,
+    color: colors.textPrimary,
+    fontWeight: '600',
+    marginBottom: spacing.xs,
+  },
+  resumeDate: {
+    ...typography.caption,
+    color: colors.textTertiary,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: spacing.xl,
+  },
+  emptyStateText: {
+    ...typography.body1,
+    color: colors.textSecondary,
+    marginTop: spacing.md,
+  },
+  emptyStateSubtext: {
+    ...typography.caption,
+    color: colors.textTertiary,
+    marginTop: spacing.xs,
+    textAlign: 'center',
   },
 });

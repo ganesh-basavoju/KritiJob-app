@@ -88,6 +88,12 @@ export const LoginScreen: React.FC<any> = ({navigation}) => {
 
           {error && <ErrorText message={error} />}
 
+          <TouchableOpacity
+            style={styles.forgotPasswordLink}
+            onPress={() => navigation.navigate('ForgotPassword')}>
+            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+          </TouchableOpacity>
+
           <Button
             title="Login"
             onPress={handleSubmit(onSubmit)}
@@ -134,6 +140,14 @@ const styles = StyleSheet.create({
   },
   form: {
     marginTop: spacing.lg,
+  },
+  forgotPasswordLink: {
+    alignSelf: 'flex-end',
+    marginTop: spacing.sm,
+  },
+  forgotPasswordText: {
+    ...typography.body2,
+    color: colors.yellow,
   },
   loginButton: {
     marginTop: spacing.md,

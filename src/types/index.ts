@@ -18,10 +18,21 @@ export interface User {
 
 export interface UserProfile extends User {
   resume?: string;
+  resumes?: Array<{
+    _id: string;
+    name: string;
+    url: string;
+    uploadedAt: string;
+  }>;
+  defaultResumeUrl?: string;
   skills: string[];
   experience: string;
   location: string;
   bio?: string;
+  title?: string;
+  about?: string;
+  phone?: string;
+  avatarUrl?: string;
 }
 
 export interface AuthTokens {
