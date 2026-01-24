@@ -154,7 +154,7 @@ export const UserNavigator: React.FC = () => {
           tabBarLabel: 'Saved',
           tabBarIcon: ({color, focused}) => (
             <Icon
-              name={focused ? 'heart' : 'heart-outline'}
+              name={focused ? 'bookmark' : 'bookmark-outline'}
               size={24}
               color={color}
             />

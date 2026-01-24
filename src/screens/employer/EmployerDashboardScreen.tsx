@@ -67,7 +67,9 @@ export const EmployerDashboardScreen: React.FC<any> = ({navigation}) => {
         <View style={styles.statsGrid}>
           {statCards.map((stat, index) => (
             <View key={index} style={[styles.statCard, {borderLeftColor: stat.color}]}>
-              <Icon name={stat.icon} size={28} color={stat.color} />
+              <View style={[styles.statIconContainer, {backgroundColor: stat.color + '15'}]}>
+                <Icon name={stat.icon} size={24} color={stat.color} />
+              </View>
               <Text style={styles.statValue}>{stat.value}</Text>
               <Text style={styles.statTitle}>{stat.title}</Text>
             </View>
@@ -81,39 +83,45 @@ export const EmployerDashboardScreen: React.FC<any> = ({navigation}) => {
             style={styles.actionCard}
             onPress={() => navigation.navigate('PostJob')}>
             <View style={styles.actionContent}>
-              <Icon name="add-circle" size={32} color={colors.success} />
+              <View style={[styles.actionIconContainer, {backgroundColor: colors.success + '15'}]}>
+                <Icon name="add-circle" size={24} color={colors.success} />
+              </View>
               <View style={styles.actionText}>
                 <Text style={styles.actionTitle}>Post New Job</Text>
                 <Text style={styles.actionSubtitle}>Create a new job posting</Text>
               </View>
             </View>
-            <Icon name="chevron-forward" size={24} color={colors.textTertiary} />
+            <Icon name="chevron-forward" size={20} color={colors.textTertiary} />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.actionCard}
             onPress={() => navigation.navigate('ManageJobs')}>
             <View style={styles.actionContent}>
-              <Icon name="clipboard" size={32} color={colors.info} />
+              <View style={[styles.actionIconContainer, {backgroundColor: colors.info + '15'}]}>
+                <Icon name="clipboard" size={24} color={colors.info} />
+              </View>
               <View style={styles.actionText}>
                 <Text style={styles.actionTitle}>Manage Jobs</Text>
                 <Text style={styles.actionSubtitle}>View and edit your job postings</Text>
               </View>
             </View>
-            <Icon name="chevron-forward" size={24} color={colors.textTertiary} />
+            <Icon name="chevron-forward" size={20} color={colors.textTertiary} />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.actionCard}
             onPress={() => navigation.navigate('CompanyProfile')}>
             <View style={styles.actionContent}>
-              <Icon name="business" size={32} color={colors.warning} />
+              <View style={[styles.actionIconContainer, {backgroundColor: colors.warning + '15'}]}>
+                <Icon name="business" size={24} color={colors.warning} />
+              </View>
               <View style={styles.actionText}>
                 <Text style={styles.actionTitle}>Company Profile</Text>
                 <Text style={styles.actionSubtitle}>Update company information</Text>
               </View>
             </View>
-            <Icon name="chevron-forward" size={24} color={colors.textTertiary} />
+            <Icon name="chevron-forward" size={20} color={colors.textTertiary} />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -150,14 +158,20 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     borderLeftWidth: 4,
     ...shadows.md,
+    alignItems: 'flex-start',
   },
-  statIcon: {
-    fontSize: 32,
+  statIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: spacing.sm,
   },
   statValue: {
     ...typography.h2,
     color: colors.textPrimary,
+    marginTop: spacing.xs,
     marginBottom: spacing.xs,
   },
   statTitle: {
@@ -187,8 +201,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
-  actionIcon: {
-    fontSize: 32,
+  actionIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: spacing.md,
   },
   actionText: {
