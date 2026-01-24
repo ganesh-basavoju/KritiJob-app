@@ -3,6 +3,7 @@
 // ============================================
 
 import React from 'react';
+import Icon from 'react-native-vector-icons/Ionicons';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {EmployerDashboardScreen} from '../screens/employer/EmployerDashboardScreen';
@@ -10,9 +11,8 @@ import {PostJobScreen} from '../screens/employer/PostJobScreen';
 import {ManageJobsScreen} from '../screens/employer/ManageJobsScreen';
 import {ApplicantsScreen} from '../screens/employer/ApplicantsScreen';
 import {ApplicantDetailsScreen} from '../screens/employer/ApplicantDetailsScreen';
-import {CompanyProfileScreen} from '../screens/employer/CompanyProfileScreen';
 import {NotificationsScreen} from '../screens/notifications/NotificationsScreen';
-import {SettingsScreen} from '../screens/settings/SettingsScreen';
+import {MoreScreen} from '../screens/employer/MoreScreen';
 import {colors} from '../theme/colors';
 import {typography} from '../theme/typography';
 
@@ -74,21 +74,6 @@ const JobsStack = () => (
   </Stack.Navigator>
 );
 
-const CompanyStack = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerStyle: {backgroundColor: colors.background},
-      headerTintColor: colors.textPrimary,
-      headerTitleStyle: typography.h5,
-    }}>
-    <Stack.Screen
-      name="CompanyProfileView"
-      component={CompanyProfileScreen}
-      options={{title: 'Company Profile'}}
-    />
-  </Stack.Navigator>
-);
-
 const ProfileStack = () => (
   <Stack.Navigator
     screenOptions={{
@@ -97,9 +82,9 @@ const ProfileStack = () => (
       headerTitleStyle: typography.h5,
     }}>
     <Stack.Screen
-      name="Settings"
-      component={SettingsScreen}
-      options={{title: 'Settings'}}
+      name="MoreScreen"
+      component={MoreScreen}
+      options={{title: 'More'}}
     />
     <Stack.Screen
       name="Notifications"
@@ -126,7 +111,13 @@ export const EmployerNavigator: React.FC = () => {
         component={DashboardStack}
         options={{
           tabBarLabel: 'Dashboard',
-          tabBarIcon: ({color}) => <span style={{fontSize: 24}}>📊</span>,
+          tabBarIcon: ({color, focused}) => (
+            <Icon
+              name={focused ? 'stats-chart' : 'stats-chart-outline'}
+              size={24}
+              color={color}
+            />
+          ),
         }}
       />
       <Tab.Screen
@@ -134,15 +125,13 @@ export const EmployerNavigator: React.FC = () => {
         component={JobsStack}
         options={{
           tabBarLabel: 'Jobs',
-          tabBarIcon: ({color}) => <span style={{fontSize: 24}}>💼</span>,
-        }}
-      />
-      <Tab.Screen
-        name="CompanyProfile"
-        component={CompanyStack}
-        options={{
-          tabBarLabel: 'Company',
-          tabBarIcon: ({color}) => <span style={{fontSize: 24}}>🏢</span>,
+          tabBarIcon: ({color, focused}) => (
+            <Icon
+              name={focused ? 'briefcase' : 'briefcase-outline'}
+              size={24}
+              color={color}
+            />
+          ),
         }}
       />
       <Tab.Screen
@@ -150,7 +139,13 @@ export const EmployerNavigator: React.FC = () => {
         component={ProfileStack}
         options={{
           tabBarLabel: 'More',
-          tabBarIcon: ({color}) => <span style={{fontSize: 24}}>⚙️</span>,
+          tabBarIcon: ({color, focused}) => (
+            <Icon
+              name={focused ? 'ellipsis-horizontal' : 'ellipsis-horizontal-outline'}
+              size={24}
+              color={color}
+            />
+          ),
         }}
       />
     </Tab.Navigator>

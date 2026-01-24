@@ -1,12 +1,10 @@
-// ============================================
-// CONSTANTS
-// ============================================
 
-export const API_BASE_URL = 'https://kriti-job-backend.vercel.app/api';
+const device_Ip = "192.168.31.242"
 
-export const SOCKET_URL = __DEV__
-  ? 'http://10.0.2.2:5000'
-  : 'https://api.kritijob.com';
+export const API_BASE_URL = `https://kriti-job-backend.vercel.app/api`
+
+//export const SOCKET_URL = `http://${device_Ip}:5000`
+
 
 export const ITEMS_PER_PAGE = 20;
 

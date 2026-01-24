@@ -37,13 +37,12 @@ export interface AuthResponse {
 export interface Company {
   id: string;
   name: string;
-  logo?: string;
+  logoUrl?: string;
   description: string;
-  industry: string;
-  size: string;
+  employeesCount: string;
   website?: string;
   location: string;
-  employerId: string;
+  ownerId: string;
   createdAt: string;
 }
 

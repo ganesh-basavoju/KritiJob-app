@@ -4,6 +4,7 @@
 
 import React, {useEffect, useState} from 'react';
 import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert} from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import {useDispatch, useSelector} from 'react-redux';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {fetchApplicantById, updateApplicationStatus} from '../../redux/slices/employerSlice';
@@ -60,8 +61,18 @@ export const ApplicantDetailsScreen: React.FC<any> = ({route}) => {
         <View style={styles.header}>
           <Text style={styles.name}>{user.name}</Text>
           <Text style={styles.email}>{user.email}</Text>
-          {user.phone && <Text style={styles.phone}>📞 {user.phone}</Text>}
-          {user.location && <Text style={styles.location}>📍 {user.location}</Text>}
+          {user.phone && (
+            <View style={styles.contactRow}>
+              <Icon name="call-outline" size={16} color={colors.textSecondary} />
+              <Text style={styles.phone}>{user.phone}</Text>
+            </View>
+          )}
+          {user.location && (
+            <View style={styles.contactRow}>
+              <Icon name="location-outline" size={16} color={colors.textSecondary} />
+              <Text style={styles.location}>{user.location}</Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.statusSection}>
@@ -168,10 +179,15 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginBottom: spacing.xs,
   },
+  contactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginBottom: spacing.xs,
+  },
   phone: {
     ...typography.body2,
     color: colors.textSecondary,
-    marginBottom: spacing.xs,
   },
   location: {
     ...typography.body2,

@@ -4,6 +4,7 @@
 
 import React, {useEffect} from 'react';
 import {View, Text, StyleSheet, ScrollView, TouchableOpacity} from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import {useDispatch, useSelector} from 'react-redux';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {fetchEmployerStats} from '../../redux/slices/employerSlice';
@@ -33,25 +34,25 @@ export const EmployerDashboardScreen: React.FC<any> = ({navigation}) => {
     {
       title: 'Active Jobs',
       value: stats?.activeJobs || 0,
-      icon: '💼',
+      icon: 'briefcase',
       color: colors.info,
     },
     {
       title: 'Total Applications',
       value: stats?.totalApplications || 0,
-      icon: '📝',
+      icon: 'document-text',
       color: colors.success,
     },
     {
       title: 'Pending Review',
       value: stats?.pendingApplications || 0,
-      icon: '⏳',
+      icon: 'time',
       color: colors.warning,
     },
     {
       title: 'Shortlisted',
       value: stats?.shortlistedCandidates || 0,
-      icon: '⭐',
+      icon: 'star',
       color: colors.yellow,
     },
   ];
@@ -66,7 +67,7 @@ export const EmployerDashboardScreen: React.FC<any> = ({navigation}) => {
         <View style={styles.statsGrid}>
           {statCards.map((stat, index) => (
             <View key={index} style={[styles.statCard, {borderLeftColor: stat.color}]}>
-              <Text style={styles.statIcon}>{stat.icon}</Text>
+              <Icon name={stat.icon} size={28} color={stat.color} />
               <Text style={styles.statValue}>{stat.value}</Text>
               <Text style={styles.statTitle}>{stat.title}</Text>
             </View>
@@ -80,39 +81,39 @@ export const EmployerDashboardScreen: React.FC<any> = ({navigation}) => {
             style={styles.actionCard}
             onPress={() => navigation.navigate('PostJob')}>
             <View style={styles.actionContent}>
-              <Text style={styles.actionIcon}>➕</Text>
+              <Icon name="add-circle" size={32} color={colors.success} />
               <View style={styles.actionText}>
                 <Text style={styles.actionTitle}>Post New Job</Text>
                 <Text style={styles.actionSubtitle}>Create a new job posting</Text>
               </View>
             </View>
-            <Text style={styles.actionArrow}>›</Text>
+            <Icon name="chevron-forward" size={24} color={colors.textTertiary} />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.actionCard}
             onPress={() => navigation.navigate('ManageJobs')}>
             <View style={styles.actionContent}>
-              <Text style={styles.actionIcon}>📋</Text>
+              <Icon name="clipboard" size={32} color={colors.info} />
               <View style={styles.actionText}>
                 <Text style={styles.actionTitle}>Manage Jobs</Text>
                 <Text style={styles.actionSubtitle}>View and edit your job postings</Text>
               </View>
             </View>
-            <Text style={styles.actionArrow}>›</Text>
+            <Icon name="chevron-forward" size={24} color={colors.textTertiary} />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.actionCard}
             onPress={() => navigation.navigate('CompanyProfile')}>
             <View style={styles.actionContent}>
-              <Text style={styles.actionIcon}>🏢</Text>
+              <Icon name="business" size={32} color={colors.warning} />
               <View style={styles.actionText}>
                 <Text style={styles.actionTitle}>Company Profile</Text>
                 <Text style={styles.actionSubtitle}>Update company information</Text>
               </View>
             </View>
-            <Text style={styles.actionArrow}>›</Text>
+            <Icon name="chevron-forward" size={24} color={colors.textTertiary} />
           </TouchableOpacity>
         </View>
       </ScrollView>

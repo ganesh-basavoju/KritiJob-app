@@ -1,7 +1,4 @@
-// ============================================
-// AUTH API
-// ============================================
-
+ 
 import axiosInstance from './axios';
 import {AuthResponse, User, UserRole} from '../types';
 
@@ -44,16 +41,6 @@ export const authApi = {
 
   async updateFCMToken(fcmToken: string): Promise<void> {
     await axiosInstance.post('/auth/fcm-token', {fcmToken});
-  },
-
-  async changePassword(
-    oldPassword: string,
-    newPassword: string,
-  ): Promise<void> {
-    await axiosInstance.post('/auth/change-password', {
-      oldPassword,
-      newPassword,
-    });
   },
 
   async forgotPassword(email: string): Promise<void> {

@@ -3,6 +3,7 @@
 // ============================================
 
 import React from 'react';
+import Icon from 'react-native-vector-icons/Ionicons';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {JobFeedScreen} from '../screens/user/JobFeedScreen';
@@ -13,7 +14,7 @@ import {UserProfileScreen} from '../screens/user/UserProfileScreen';
 import {CompaniesListScreen} from '../screens/companies/CompaniesListScreen';
 import {CompanyDetailsScreen} from '../screens/companies/CompanyDetailsScreen';
 import {NotificationsScreen} from '../screens/notifications/NotificationsScreen';
-import {SettingsScreen} from '../screens/settings/SettingsScreen';
+// import {SettingsScreen} from '../screens/settings/SettingsScreen';
 import {colors} from '../theme/colors';
 import {typography} from '../theme/typography';
 
@@ -113,11 +114,6 @@ const ProfileStack = () => (
       options={{title: 'Profile'}}
     />
     <Stack.Screen
-      name="Settings"
-      component={SettingsScreen}
-      options={{title: 'Settings'}}
-    />
-    <Stack.Screen
       name="Notifications"
       component={NotificationsScreen}
       options={{title: 'Notifications'}}
@@ -142,7 +138,13 @@ export const UserNavigator: React.FC = () => {
         component={JobsStack}
         options={{
           tabBarLabel: 'Jobs',
-          tabBarIcon: ({color}) => <span style={{fontSize: 24}}>💼</span>,
+          tabBarIcon: ({color, focused}) => (
+            <Icon
+              name={focused ? 'briefcase' : 'briefcase-outline'}
+              size={24}
+              color={color}
+            />
+          ),
         }}
       />
       <Tab.Screen
@@ -150,7 +152,13 @@ export const UserNavigator: React.FC = () => {
         component={SavedStack}
         options={{
           tabBarLabel: 'Saved',
-          tabBarIcon: ({color}) => <span style={{fontSize: 24}}>❤️</span>,
+          tabBarIcon: ({color, focused}) => (
+            <Icon
+              name={focused ? 'heart' : 'heart-outline'}
+              size={24}
+              color={color}
+            />
+          ),
         }}
       />
       <Tab.Screen
@@ -158,7 +166,13 @@ export const UserNavigator: React.FC = () => {
         component={ApplicationsStack}
         options={{
           tabBarLabel: 'Applications',
-          tabBarIcon: ({color}) => <span style={{fontSize: 24}}>📝</span>,
+          tabBarIcon: ({color, focused}) => (
+            <Icon
+              name={focused ? 'document-text' : 'document-text-outline'}
+              size={24}
+              color={color}
+            />
+          ),
         }}
       />
       <Tab.Screen
@@ -166,7 +180,13 @@ export const UserNavigator: React.FC = () => {
         component={CompaniesStack}
         options={{
           tabBarLabel: 'Companies',
-          tabBarIcon: ({color}) => <span style={{fontSize: 24}}>🏢</span>,
+          tabBarIcon: ({color, focused}) => (
+            <Icon
+              name={focused ? 'business' : 'business-outline'}
+              size={24}
+              color={color}
+            />
+          ),
         }}
       />
       <Tab.Screen
@@ -174,7 +194,13 @@ export const UserNavigator: React.FC = () => {
         component={ProfileStack}
         options={{
           tabBarLabel: 'Profile',
-          tabBarIcon: ({color}) => <span style={{fontSize: 24}}>👤</span>,
+          tabBarIcon: ({color, focused}) => (
+            <Icon
+              name={focused ? 'person' : 'person-outline'}
+              size={24}
+              color={color}
+            />
+          ),
         }}
       />
     </Tab.Navigator>

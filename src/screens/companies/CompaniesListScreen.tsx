@@ -4,6 +4,7 @@
 
 import React, {useEffect, useState} from 'react';
 import {View, Text, StyleSheet, FlatList, TouchableOpacity} from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import {useDispatch, useSelector} from 'react-redux';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {fetchCompanies} from '../../redux/slices/companiesSlice';
@@ -40,9 +41,14 @@ export const CompaniesListScreen: React.FC<any> = ({navigation}) => {
       onPress={() => navigation.navigate('CompanyDetails', {companyId: item.id})}
       activeOpacity={0.7}>
       <Text style={styles.name}>{item.name}</Text>
-      <Text style={styles.industry}>🏭 {item.industry}</Text>
-      <Text style={styles.location}>📍 {item.location}</Text>
-      <Text style={styles.size}>👥 {item.size}</Text>
+      <View style={styles.detailRow}>
+        <Icon name="location-outline" size={16} color={colors.textSecondary} />
+        <Text style={styles.location}>{item.location}</Text>
+      </View>
+      <View style={styles.detailRow}>
+        <Icon name="people-outline" size={16} color={colors.textSecondary} />
+        <Text style={styles.size}>{item.employeesCount}</Text>
+      </View>
     </TouchableOpacity>
   );
 
@@ -85,15 +91,15 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     marginBottom: spacing.sm,
   },
-  industry: {
-    ...typography.body2,
-    color: colors.textSecondary,
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
     marginBottom: spacing.xs,
   },
   location: {
     ...typography.body2,
     color: colors.textSecondary,
-    marginBottom: spacing.xs,
   },
   size: {
     ...typography.body2,

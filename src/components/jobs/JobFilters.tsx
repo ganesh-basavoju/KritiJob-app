@@ -11,6 +11,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import {colors} from '../../theme/colors';
 import {spacing, borderRadius} from '../../theme/spacing';
 import {typography} from '../../theme/typography';
@@ -54,7 +55,7 @@ export const JobFiltersComponent: React.FC<JobFiltersProps> = ({
           <View style={styles.header}>
             <Text style={styles.title}>Filter Jobs</Text>
             <TouchableOpacity onPress={onClose}>
-              <Text style={styles.closeText}>✕</Text>
+              <Icon name="close" size={24} color={colors.textPrimary} />
             </TouchableOpacity>
           </View>
 

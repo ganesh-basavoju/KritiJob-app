@@ -26,8 +26,9 @@ export const AppNavigator: React.FC = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      setupFCM();
-      setupNotificationListeners();
+      // TODO: Enable FCM after adding Firebase config files
+      // setupFCM();
+      // setupNotificationListeners();
     }
   }, [isAuthenticated]);
 

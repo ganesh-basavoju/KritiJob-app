@@ -29,10 +29,15 @@ export const userApi = {
     await axiosInstance.delete(`/candidate/resume/${resumeId}`);
   },
 
-  async uploadAvatar(formData: FormData): Promise<{avatarUrl: string}> {
+  async uploadAvatar(formData: FormData): Promise<string> {
     const response = await axiosInstance.post('/candidate/avatar', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
+      },
+      transformRequest: (data, headers) => {
+        // Let axios set the Content-Type with proper boundary
+        delete headers['Content-Type'];
+        return data;
       },
     });
     return response.data.data;

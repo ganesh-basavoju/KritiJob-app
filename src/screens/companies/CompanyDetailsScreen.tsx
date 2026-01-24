@@ -4,6 +4,7 @@
 
 import React, {useEffect} from 'react';
 import {View, Text, StyleSheet, ScrollView} from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import {useDispatch, useSelector} from 'react-redux';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {fetchCompanyById} from '../../redux/slices/companiesSlice';
@@ -12,6 +13,11 @@ import {Loader} from '../../components/common/Loader';
 import {colors} from '../../theme/colors';
 import {spacing, borderRadius} from '../../theme/spacing';
 import {typography} from '../../theme/typography';
+
+// Helper to strip HTML tags
+const stripHtml = (html: string): string => {
+  return html?.replace(/<[^>]*>/g, '') || '';
+};
 
 export const CompanyDetailsScreen: React.FC<any> = ({route}) => {
   const {companyId} = route.params;
@@ -40,15 +46,18 @@ export const CompanyDetailsScreen: React.FC<any> = ({route}) => {
         <View style={styles.header}>
           <Text style={styles.name}>{currentCompany.name}</Text>
           <View style={styles.detailRow}>
-            <Text style={styles.detailText}>🏭 {currentCompany.industry}</Text>
-            <Text style={styles.detailText}>👥 {currentCompany.size}</Text>
+            <Icon name="people-outline" size={16} color={colors.textSecondary} />
+            <Text style={styles.detailText}>{currentCompany.employeesCount}</Text>
           </View>
-          <Text style={styles.location}>📍 {currentCompany.location}</Text>
+          <View style={styles.locationRow}>
+            <Icon name="location-outline" size={16} color={colors.textSecondary} />
+            <Text style={styles.location}>{currentCompany.location}</Text>
+          </View>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>About</Text>
-          <Text style={styles.description}>{currentCompany.description}</Text>
+          <Text style={styles.description}>{stripHtml(currentCompany.description)}</Text>
         </View>
 
         {currentCompany.website && (
@@ -83,12 +92,18 @@ const styles = StyleSheet.create({
   },
   detailRow: {
     flexDirection: 'row',
-    marginBottom: spacing.xs,
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginBottom: spacing.sm,
   },
   detailText: {
     ...typography.body2,
     color: colors.textSecondary,
-    marginRight: spacing.md,
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
   },
   location: {
     ...typography.body2,
