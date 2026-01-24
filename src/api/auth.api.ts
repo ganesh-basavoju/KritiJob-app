@@ -1,7 +1,4 @@
-// ============================================
-// AUTH API
-// ============================================
-
+ 
 import axiosInstance from './axios';
 import {AuthResponse, User, UserRole} from '../types';
 
