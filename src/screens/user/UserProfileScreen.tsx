@@ -203,12 +203,12 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
             </View>
           ) : profile?.title ? (
             <TouchableOpacity style={styles.infoItem} onPress={() => setIsEditingTitle(true)}>
-              <Icon name="briefcase-outline" size={18} color={colors.textSecondary} />
+              <Icon name="briefcase-outline" size={20} color={colors.textPrimary} style={styles.infoIcon} />
               <Text style={styles.infoText}>{profile.title}</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity style={styles.infoItem} onPress={() => setIsEditingTitle(true)}>
-              <Icon name="briefcase-outline" size={18} color={colors.textSecondary} />
+              <Icon name="briefcase-outline" size={20} color={colors.textSecondary} style={styles.infoIcon} />
               <Text style={styles.addText}>Add Title</Text>
             </TouchableOpacity>
           )}
@@ -234,12 +234,12 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
             </View>
           ) : profile?.location ? (
             <TouchableOpacity style={styles.infoItem} onPress={() => setIsEditingLocation(true)}>
-              <Icon name="location-outline" size={18} color={colors.textSecondary} />
+              <Icon name="location-outline" size={20} color={colors.textPrimary} style={styles.infoIcon} />
               <Text style={styles.infoText}>{profile.location}</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity style={styles.infoItem} onPress={() => setIsEditingLocation(true)}>
-              <Icon name="location-outline" size={18} color={colors.textSecondary} />
+              <Icon name="location-outline" size={20} color={colors.textSecondary} style={styles.infoIcon} />
               <Text style={styles.addText}>Add Location</Text>
             </TouchableOpacity>
           )}
@@ -250,7 +250,7 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>About</Text>
             <TouchableOpacity onPress={() => setIsEditingAbout(!isEditingAbout)}>
-              <Text style={styles.editIcon}>✏️</Text>
+              <Icon name="pencil" size={20} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
           
@@ -286,7 +286,7 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Skills</Text>
             <TouchableOpacity onPress={() => setIsEditingSkills(!isEditingSkills)}>
-              <Text style={styles.editIcon}>✏️</Text>
+              <Icon name="pencil" size={20} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
           
@@ -329,7 +329,7 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Contact Information</Text>
             <TouchableOpacity onPress={() => setIsEditingContact(!isEditingContact)}>
-              <Text style={styles.editIcon}>✏️</Text>
+              <Icon name="pencil" size={20} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
           
@@ -438,9 +438,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.white,
   },
-  editAvatarIcon: {
-    fontSize: 14,
-  },
   name: {
     ...typography.h3,
     color: colors.textPrimary,
@@ -452,8 +449,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   infoIcon: {
-    fontSize: 16,
-    marginRight: spacing.xs,
+    marginRight: spacing.sm,
   },
   infoText: {
     ...typography.body1,
@@ -478,9 +474,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     ...typography.h5,
     color: colors.textPrimary,
-  },
-  editIcon: {
-    fontSize: 18,
   },
   sectionContent: {
     ...typography.body2,
@@ -583,15 +576,5 @@ const styles = StyleSheet.create({
   inlineActions: {
     flexDirection: 'row',
     gap: spacing.sm,
-  },
-  inlineCancel: {
-    fontSize: 20,
-    color: colors.textSecondary,
-    paddingHorizontal: spacing.xs,
-  },
-  inlineSave: {
-    fontSize: 20,
-    color: colors.yellow,
-    paddingHorizontal: spacing.xs,
   },
 });
