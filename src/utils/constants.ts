@@ -2,9 +2,7 @@
 // CONSTANTS
 // ============================================
 
-export const API_BASE_URL = __DEV__
-  ? 'http://10.0.2.2:5000/api'
-  : 'https://api.kritijob.com/api';
+export const API_BASE_URL = 'https://kriti-job-backend.vercel.app/api';
 
 export const SOCKET_URL = __DEV__
   ? 'http://10.0.2.2:5000'
