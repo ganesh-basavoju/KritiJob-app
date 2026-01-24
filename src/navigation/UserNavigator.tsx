@@ -14,7 +14,7 @@ import {UserProfileScreen} from '../screens/user/UserProfileScreen';
 import {CompaniesListScreen} from '../screens/companies/CompaniesListScreen';
 import {CompanyDetailsScreen} from '../screens/companies/CompanyDetailsScreen';
 import {NotificationsScreen} from '../screens/notifications/NotificationsScreen';
-import {SettingsScreen} from '../screens/settings/SettingsScreen';
+// import {SettingsScreen} from '../screens/settings/SettingsScreen';
 import {colors} from '../theme/colors';
 import {typography} from '../theme/typography';
 
