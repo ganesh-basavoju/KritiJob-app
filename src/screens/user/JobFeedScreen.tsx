@@ -85,7 +85,7 @@ export const JobFeedScreen: React.FC<any> = ({navigation}) => {
             onPress={() => navigation.navigate('JobDetails', {jobId: item.id})}
           />
         )}
-        keyExtractor={item => item.id}
+        keyExtractor={(item, index) => (item.id ? String(item.id) : `job-${index}`)}
         contentContainerStyle={styles.list}
         refreshing={refreshing}
         onRefresh={handleRefresh}

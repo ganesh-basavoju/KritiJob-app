@@ -114,11 +114,6 @@ const ProfileStack = () => (
       options={{title: 'Profile'}}
     />
     <Stack.Screen
-      name="Settings"
-      component={SettingsScreen}
-      options={{title: 'Settings'}}
-    />
-    <Stack.Screen
       name="Notifications"
       component={NotificationsScreen}
       options={{title: 'Notifications'}}

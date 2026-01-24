@@ -3,7 +3,7 @@
 // ============================================
 
 //put your device IP(for development use only, command to find IP: ipconfig | findstr "IPv4")
-const device_Ip = ""
+const device_Ip = "192.168.31.242"
 
 export const API_BASE_URL = `http://${device_Ip}:5000/api`
 

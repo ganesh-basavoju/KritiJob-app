@@ -46,16 +46,6 @@ export const authApi = {
     await axiosInstance.post('/auth/fcm-token', {fcmToken});
   },
 
-  async changePassword(
-    oldPassword: string,
-    newPassword: string,
-  ): Promise<void> {
-    await axiosInstance.post('/auth/change-password', {
-      oldPassword,
-      newPassword,
-    });
-  },
-
   async forgotPassword(email: string): Promise<void> {
     await axiosInstance.post('/auth/forgot-password', {email});
   },

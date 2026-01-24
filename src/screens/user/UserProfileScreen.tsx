@@ -2,11 +2,12 @@
 // USER PROFILE SCREEN
 // ============================================
 
-import React, {useEffect} from 'react';
-import {View, Text, StyleSheet, ScrollView, TouchableOpacity} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Platform, Image} from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {fetchUserProfile} from '../../redux/slices/userSlice';
+import {launchImageLibrary} from 'react-native-image-picker';
+import {fetchUserProfile, updateUserProfile, uploadAvatar} from '../../redux/slices/userSlice';
 import {logout} from '../../redux/slices/authSlice';
 import {AppDispatch, RootState} from '../../redux/store';
 import {Button} from '../../components/common/Button';
@@ -20,9 +21,30 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
   const {profile, loading} = useSelector((state: RootState) => state.user);
   const {user} = useSelector((state: RootState) => state.auth);
 
+  const [isEditingAbout, setIsEditingAbout] = useState(false);
+  const [isEditingSkills, setIsEditingSkills] = useState(false);
+  const [isEditingContact, setIsEditingContact] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [isEditingLocation, setIsEditingLocation] = useState(false);
+  const [editedAbout, setEditedAbout] = useState('');
+  const [editedSkills, setEditedSkills] = useState('');
+  const [editedPhone, setEditedPhone] = useState('');
+  const [editedTitle, setEditedTitle] = useState('');
+  const [editedLocation, setEditedLocation] = useState('');
+
   useEffect(() => {
     loadProfile();
   }, []);
+
+  useEffect(() => {
+    if (profile) {
+      setEditedAbout(profile.about || '');
+      setEditedSkills(profile.skills?.join(', ') || '');
+      setEditedPhone(profile.phone || '');
+      setEditedTitle(profile.title || '');
+      setEditedLocation(profile.location || '');
+    }
+  }, [profile]);
 
   const loadProfile = async () => {
     await dispatch(fetchUserProfile());
@@ -32,81 +54,324 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
     await dispatch(logout());
   };
 
+  const handleUploadAvatar = async () => {
+    try {
+      const result = await launchImageLibrary({
+        mediaType: 'photo',
+        quality: 0.8,
+        maxWidth: 500,
+        maxHeight: 500,
+      });
+
+      if (result.didCancel || !result.assets || result.assets.length === 0) {
+        return;
+      }
+
+      const asset = result.assets[0];
+      if (!asset.uri) {
+        Alert.alert('Error', 'Invalid image selected');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('avatar', {
+        uri: Platform.OS === 'ios' ? asset.uri.replace('file://', '') : asset.uri,
+        type: asset.type || 'image/jpeg',
+        name: asset.fileName || 'avatar.jpg',
+      } as any);
+
+      await dispatch(uploadAvatar(formData)).unwrap();
+      await loadProfile();
+      Alert.alert('Success', 'Avatar uploaded successfully');
+    } catch (error: any) {
+      Alert.alert('Error', error || 'Failed to upload avatar');
+    }
+  };
+
+  const handleSaveAbout = async () => {
+    try {
+      await dispatch(updateUserProfile({ about: editedAbout })).unwrap();
+      setIsEditingAbout(false);
+      Alert.alert('Success', 'About section updated');
+    } catch (error: any) {
+      Alert.alert('Error', error || 'Failed to update profile');
+    }
+  };
+
+  const handleSaveSkills = async () => {
+    try {
+      const skillsArray = editedSkills.split(',').map(s => s.trim()).filter(s => s.length > 0);
+      await dispatch(updateUserProfile({ skills: skillsArray })).unwrap();
+      setIsEditingSkills(false);
+      Alert.alert('Success', 'Skills updated');
+    } catch (error: any) {
+      Alert.alert('Error', error || 'Failed to update skills');
+    }
+  };
+
+  const handleSaveContact = async () => {
+    try {
+      await dispatch(updateUserProfile({ phone: editedPhone })).unwrap();
+      setIsEditingContact(false);
+      Alert.alert('Success', 'Contact information updated');
+    } catch (error: any) {
+      Alert.alert('Error', error || 'Failed to update contact information');
+    }
+  };
+
+  const handleSaveTitle = async () => {
+    try {
+      await dispatch(updateUserProfile({ title: editedTitle })).unwrap();
+      setIsEditingTitle(false);
+      Alert.alert('Success', 'Title updated');
+    } catch (error: any) {
+      Alert.alert('Error', error || 'Failed to update title');
+    }
+  };
+
+  const handleSaveLocation = async () => {
+    try {
+      await dispatch(updateUserProfile({ location: editedLocation })).unwrap();
+      setIsEditingLocation(false);
+      Alert.alert('Success', 'Location updated');
+    } catch (error: any) {
+      Alert.alert('Error', error || 'Failed to update location');
+    }
+  };
+
   if (loading && !profile) {
     return <Loader />;
   }
 
   const profileData = profile || user;
 
+  const getInitials = (name?: string) => {
+    if (!name) return '';
+    const nameParts = name.trim().split(' ').filter(part => part.length > 0);
+    if (nameParts.length === 0) return '';
+    if (nameParts.length === 1) return nameParts[0].charAt(0).toUpperCase();
+    return (nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)).toUpperCase();
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.avatarContainer}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {profileData?.name?.charAt(0).toUpperCase()}
-            </Text>
+        {/* Header with Avatar */}
+        <View style={styles.header}>
+          <View style={styles.avatarWrapper}>
+            {profileData?.avatarUrl || profile?.avatar ? (
+              <Image 
+                source={{ uri: profileData?.avatarUrl || profile?.avatar }} 
+                style={styles.avatarImage}
+              />
+            ) : (
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>
+                  {getInitials(user?.name)}
+                </Text>
+              </View>
+            )}
+            <TouchableOpacity 
+              style={styles.editAvatarButton}
+              onPress={handleUploadAvatar}
+            >
+              <Text style={styles.editAvatarIcon}>✏️</Text>
+            </TouchableOpacity>
           </View>
-          <Text style={styles.name}>{profileData?.name}</Text>
-          <Text style={styles.email}>{profileData?.email}</Text>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Profile Information</Text>
           
-          {profile?.location && (
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Location</Text>
-              <Text style={styles.infoValue}>{profile.location}</Text>
+          <Text style={styles.name}>{user?.name}</Text>
+          
+          {/* Title/Experience */}
+          {isEditingTitle ? (
+            <View style={styles.inlineEditContainer}>
+              <TextInput
+                style={styles.inlineInput}
+                value={editedTitle}
+                onChangeText={setEditedTitle}
+                placeholder="Add your title/experience"
+                placeholderTextColor={colors.textTertiary}
+              />
+              <View style={styles.inlineActions}>
+                <TouchableOpacity onPress={() => setIsEditingTitle(false)}>
+                  <Text style={styles.inlineCancel}>✕</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleSaveTitle}>
+                  <Text style={styles.inlineSave}>✓</Text>
+                </TouchableOpacity>
+              </View>
             </View>
+          ) : profile?.title ? (
+            <TouchableOpacity style={styles.infoItem} onPress={() => setIsEditingTitle(true)}>
+              <Text style={styles.infoIcon}>💼</Text>
+              <Text style={styles.infoText}>{profile.title}</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.infoItem} onPress={() => setIsEditingTitle(true)}>
+              <Text style={styles.infoIcon}>💼</Text>
+              <Text style={styles.addText}>Add Title</Text>
+            </TouchableOpacity>
           )}
-
-          {profile?.experience && (
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Experience</Text>
-              <Text style={styles.infoValue}>{profile.experience}</Text>
+          
+          {/* Location */}
+          {isEditingLocation ? (
+            <View style={styles.inlineEditContainer}>
+              <TextInput
+                style={styles.inlineInput}
+                value={editedLocation}
+                onChangeText={setEditedLocation}
+                placeholder="Add your location"
+                placeholderTextColor={colors.textTertiary}
+              />
+              <View style={styles.inlineActions}>
+                <TouchableOpacity onPress={() => setIsEditingLocation(false)}>
+                  <Text style={styles.inlineCancel}>✕</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleSaveLocation}>
+                  <Text style={styles.inlineSave}>✓</Text>
+                </TouchableOpacity>
+              </View>
             </View>
+          ) : profile?.location ? (
+            <TouchableOpacity style={styles.infoItem} onPress={() => setIsEditingLocation(true)}>
+              <Text style={styles.infoIcon}>📍</Text>
+              <Text style={styles.infoText}>{profile.location}</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.infoItem} onPress={() => setIsEditingLocation(true)}>
+              <Text style={styles.infoIcon}>📍</Text>
+              <Text style={styles.addText}>Add Location</Text>
+            </TouchableOpacity>
           )}
+        </View>
 
-          {profile?.phone && (
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Phone</Text>
-              <Text style={styles.infoValue}>{profile.phone}</Text>
+        {/* About Section */}
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>About</Text>
+            <TouchableOpacity onPress={() => setIsEditingAbout(!isEditingAbout)}>
+              <Text style={styles.editIcon}>✏️</Text>
+            </TouchableOpacity>
+          </View>
+          
+          {isEditingAbout ? (
+            <View>
+              <TextInput
+                style={styles.textInput}
+                value={editedAbout}
+                onChangeText={setEditedAbout}
+                placeholder="Add a description about yourself"
+                placeholderTextColor={colors.textTertiary}
+                multiline
+                numberOfLines={4}
+              />
+              <View style={styles.editActions}>
+                <TouchableOpacity onPress={() => setIsEditingAbout(false)}>
+                  <Text style={styles.cancelButton}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleSaveAbout}>
+                  <Text style={styles.saveButton}>Save</Text>
+                </TouchableOpacity>
+              </View>
             </View>
+          ) : (
+            <Text style={styles.sectionContent}>
+              {profile?.about || 'No description added yet.'}
+            </Text>
           )}
+        </View>
 
-          {profile?.bio && (
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Bio</Text>
-              <Text style={styles.infoValue}>{profile.bio}</Text>
+        {/* Skills Section */}
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Skills</Text>
+            <TouchableOpacity onPress={() => setIsEditingSkills(!isEditingSkills)}>
+              <Text style={styles.editIcon}>✏️</Text>
+            </TouchableOpacity>
+          </View>
+          
+          {isEditingSkills ? (
+            <View>
+              <TextInput
+                style={styles.textInput}
+                value={editedSkills}
+                onChangeText={setEditedSkills}
+                placeholder="Enter skills separated by commas"
+                placeholderTextColor={colors.textTertiary}
+                multiline
+              />
+              <View style={styles.editActions}>
+                <TouchableOpacity onPress={() => setIsEditingSkills(false)}>
+                  <Text style={styles.cancelButton}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleSaveSkills}>
+                  <Text style={styles.saveButton}>Save</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.skillsContainer}>
+              {profile?.skills && profile.skills.length > 0 ? (
+                profile.skills.map((skill, index) => (
+                  <View key={index} style={styles.skillTag}>
+                    <Text style={styles.skillText}>{skill}</Text>
+                  </View>
+                ))
+              ) : (
+                <Text style={styles.sectionContent}>No skills added yet.</Text>
+              )}
             </View>
           )}
         </View>
 
-        {profile?.skills && profile.skills.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Skills</Text>
-            <View style={styles.skills}>
-              {profile.skills.map((skill, index) => (
-                <View key={index} style={styles.skillTag}>
-                  <Text style={styles.skillText}>{skill}</Text>
-                </View>
-              ))}
-            </View>
+        {/* Contact Information Section */}
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Contact Information</Text>
+            <TouchableOpacity onPress={() => setIsEditingContact(!isEditingContact)}>
+              <Text style={styles.editIcon}>✏️</Text>
+            </TouchableOpacity>
           </View>
-        )}
-
-        <View style={styles.section}>
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuText}>Edit Profile</Text>
-            <Text style={styles.menuArrow}>›</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => navigation.navigate('Settings')}>
-            <Text style={styles.menuText}>Settings</Text>
-            <Text style={styles.menuArrow}>›</Text>
-          </TouchableOpacity>
+          
+          {isEditingContact ? (
+            <View>
+              <View style={styles.contactRow}>
+                <Text style={styles.contactLabel}>EMAIL</Text>
+                <Text style={styles.contactValue}>{user?.email}</Text>
+              </View>
+              <View style={styles.contactRow}>
+                <Text style={styles.contactLabel}>PHONE</Text>
+                <TextInput
+                  style={[styles.textInput, styles.phoneInput]}
+                  value={editedPhone}
+                  onChangeText={setEditedPhone}
+                  placeholder="Add Phone Number"
+                  placeholderTextColor={colors.textTertiary}
+                  keyboardType="phone-pad"
+                />
+              </View>
+              <View style={styles.editActions}>
+                <TouchableOpacity onPress={() => setIsEditingContact(false)}>
+                  <Text style={styles.cancelButton}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleSaveContact}>
+                  <Text style={styles.saveButton}>Save</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <View>
+              <View style={styles.contactRow}>
+                <Text style={styles.contactLabel}>EMAIL</Text>
+                <Text style={styles.contactValue}>{user?.email}</Text>
+              </View>
+              <View style={styles.contactRow}>
+                <Text style={styles.contactLabel}>PHONE</Text>
+                <Text style={styles.contactValue}>
+                  {profile?.phone || 'Add Phone Number'}
+                </Text>
+              </View>
+            </View>
+          )}
         </View>
 
         <Button
@@ -128,58 +393,105 @@ const styles = StyleSheet.create({
   content: {
     padding: spacing.md,
   },
-  avatarContainer: {
+  header: {
     alignItems: 'center',
-    marginBottom: spacing.xl,
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: borderRadius.lg,
+    padding: spacing.xl,
+    marginBottom: spacing.md,
+  },
+  avatarWrapper: {
+    position: 'relative',
+    marginBottom: spacing.md,
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: colors.yellow,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    borderWidth: 3,
+    borderColor: colors.white,
   },
   avatarText: {
     ...typography.h1,
+    fontSize: 40,
     color: colors.navyDark,
+  },
+  avatarImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 3,
+    borderColor: colors.white,
+  },
+  editAvatarButton: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: colors.yellow,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.white,
+  },
+  editAvatarIcon: {
+    fontSize: 14,
   },
   name: {
     ...typography.h3,
     color: colors.textPrimary,
+    marginBottom: spacing.md,
+  },
+  infoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: spacing.xs,
   },
-  email: {
-    ...typography.body2,
+  infoIcon: {
+    fontSize: 16,
+    marginRight: spacing.xs,
+  },
+  infoText: {
+    ...typography.body1,
+    color: colors.textPrimary,
+  },
+  addText: {
+    ...typography.body1,
     color: colors.textSecondary,
   },
-  section: {
-    marginBottom: spacing.lg,
+  sectionCard: {
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
   },
   sectionTitle: {
     ...typography.h5,
     color: colors.textPrimary,
-    marginBottom: spacing.md,
   },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+  editIcon: {
+    fontSize: 18,
   },
-  infoLabel: {
+  sectionContent: {
     ...typography.body2,
     color: colors.textSecondary,
+    lineHeight: 22,
   },
-  infoValue: {
-    ...typography.body2,
-    color: colors.textPrimary,
-  },
-  skills: {
+  skillsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    gap: spacing.sm,
   },
   skillTag: {
     backgroundColor: colors.backgroundTertiary,
@@ -193,23 +505,81 @@ const styles = StyleSheet.create({
     ...typography.body2,
     color: colors.textPrimary,
   },
-  menuItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+  contactRow: {
+    marginBottom: spacing.md,
   },
-  menuText: {
+  contactLabel: {
+    ...typography.caption,
+    color: colors.textTertiary,
+    marginBottom: spacing.xs,
+    fontWeight: '600',
+  },
+  contactValue: {
     ...typography.body1,
     color: colors.textPrimary,
   },
-  menuArrow: {
-    ...typography.h4,
+  textInput: {
+    backgroundColor: colors.backgroundTertiary,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    ...typography.body1,
+    color: colors.textPrimary,
+    minHeight: 50,
+    textAlignVertical: 'top',
+  },
+  phoneInput: {
+    minHeight: 44,
+  },
+  editActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: spacing.md,
+    marginTop: spacing.md,
+  },
+  cancelButton: {
+    ...typography.body1,
     color: colors.textSecondary,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  saveButton: {
+    ...typography.body1,
+    color: colors.yellow,
+    fontWeight: '600',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
   logoutButton: {
     marginTop: spacing.lg,
+    marginBottom: spacing.xl,
+  },
+  inlineEditContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+    backgroundColor: colors.backgroundTertiary,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  inlineInput: {
+    flex: 1,
+    ...typography.body1,
+    color: colors.textPrimary,
+    paddingVertical: spacing.xs,
+  },
+  inlineActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  inlineCancel: {
+    fontSize: 20,
+    color: colors.textSecondary,
+    paddingHorizontal: spacing.xs,
+  },
+  inlineSave: {
+    fontSize: 20,
+    color: colors.yellow,
+    paddingHorizontal: spacing.xs,
   },
 });

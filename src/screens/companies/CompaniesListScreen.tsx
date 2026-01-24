@@ -40,9 +40,8 @@ export const CompaniesListScreen: React.FC<any> = ({navigation}) => {
       onPress={() => navigation.navigate('CompanyDetails', {companyId: item.id})}
       activeOpacity={0.7}>
       <Text style={styles.name}>{item.name}</Text>
-      <Text style={styles.industry}>🏭 {item.industry}</Text>
       <Text style={styles.location}>📍 {item.location}</Text>
-      <Text style={styles.size}>👥 {item.size}</Text>
+      <Text style={styles.size}>👥 {item.employeesCount}</Text>
     </TouchableOpacity>
   );
 
@@ -84,11 +83,6 @@ const styles = StyleSheet.create({
     ...typography.h5,
     color: colors.textPrimary,
     marginBottom: spacing.sm,
-  },
-  industry: {
-    ...typography.body2,
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
   },
   location: {
     ...typography.body2,

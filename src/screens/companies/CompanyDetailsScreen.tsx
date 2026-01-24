@@ -13,6 +13,11 @@ import {colors} from '../../theme/colors';
 import {spacing, borderRadius} from '../../theme/spacing';
 import {typography} from '../../theme/typography';
 
+// Helper to strip HTML tags
+const stripHtml = (html: string): string => {
+  return html?.replace(/<[^>]*>/g, '') || '';
+};
+
 export const CompanyDetailsScreen: React.FC<any> = ({route}) => {
   const {companyId} = route.params;
   const dispatch = useDispatch<AppDispatch>();
@@ -40,15 +45,14 @@ export const CompanyDetailsScreen: React.FC<any> = ({route}) => {
         <View style={styles.header}>
           <Text style={styles.name}>{currentCompany.name}</Text>
           <View style={styles.detailRow}>
-            <Text style={styles.detailText}>🏭 {currentCompany.industry}</Text>
-            <Text style={styles.detailText}>👥 {currentCompany.size}</Text>
+            <Text style={styles.detailText}>👥 {currentCompany.employeesCount}</Text>
           </View>
           <Text style={styles.location}>📍 {currentCompany.location}</Text>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>About</Text>
-          <Text style={styles.description}>{currentCompany.description}</Text>
+          <Text style={styles.description}>{stripHtml(currentCompany.description)}</Text>
         </View>
 
         {currentCompany.website && (
