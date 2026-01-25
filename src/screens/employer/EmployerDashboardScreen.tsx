@@ -9,6 +9,8 @@ import {useDispatch, useSelector} from 'react-redux';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {fetchEmployerStats} from '../../redux/slices/employerSlice';
 import {AppDispatch, RootState} from '../../redux/store';
+import {companiesApi} from '../../api/companies.api';
+import {Company} from '../../types';
 import {Loader} from '../../components/common/Loader';
 import {colors} from '../../theme/colors';
 import {spacing, borderRadius, shadows} from '../../theme/spacing';
@@ -17,13 +19,20 @@ import {typography} from '../../theme/typography';
 export const EmployerDashboardScreen: React.FC<any> = ({navigation}) => {
   const dispatch = useDispatch<AppDispatch>();
   const {stats, loading} = useSelector((state: RootState) => state.employer);
+  const [company, setCompany] = React.useState<Company | null>(null);
 
   useEffect(() => {
-    loadStats();
+    loadData();
   }, []);
 
-  const loadStats = async () => {
+  const loadData = async () => {
     await dispatch(fetchEmployerStats());
+    try {
+      const companyData = await companiesApi.getMyCompany();
+      setCompany(companyData);
+    } catch (error) {
+      console.log('Error fetching company:', error);
+    }
   };
 
   if (loading && !stats) {
@@ -38,22 +47,22 @@ export const EmployerDashboardScreen: React.FC<any> = ({navigation}) => {
       color: colors.info,
     },
     {
-      title: 'Total Applications',
+      title: 'Total Applicants',
       value: stats?.totalApplications || 0,
-      icon: 'document-text',
+      icon: 'people',
       color: colors.success,
     },
     {
-      title: 'Pending Review',
-      value: stats?.pendingApplications || 0,
-      icon: 'time',
+      title: 'New Applicants',
+      value: stats?.newApplications || 0,
+      icon: 'person-add',
       color: colors.warning,
     },
     {
-      title: 'Shortlisted',
-      value: stats?.shortlistedCandidates || 0,
-      icon: 'star',
-      color: colors.yellow,
+      title: 'Jobs Expiring Soon',
+      value: stats?.jobsExpiringSoon || 0,
+      icon: 'time',
+      color: colors.error,
     },
   ];
 
@@ -61,7 +70,9 @@ export const EmployerDashboardScreen: React.FC<any> = ({navigation}) => {
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.title}>Dashboard</Text>
+          {company && (
+            <Text style={styles.welcomeText}>Welcome, {company.name}</Text>
+          )}
         </View>
 
         <View style={styles.statsGrid}>
@@ -87,8 +98,23 @@ export const EmployerDashboardScreen: React.FC<any> = ({navigation}) => {
                 <Icon name="add-circle" size={24} color={colors.success} />
               </View>
               <View style={styles.actionText}>
-                <Text style={styles.actionTitle}>Post New Job</Text>
+                <Text style={styles.actionTitle}>Post a New Job</Text>
                 <Text style={styles.actionSubtitle}>Create a new job posting</Text>
+              </View>
+            </View>
+            <Icon name="chevron-forward" size={20} color={colors.textTertiary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionCard}
+            onPress={() => navigation.navigate('ViewApplicants')}>
+            <View style={styles.actionContent}>
+              <View style={[styles.actionIconContainer, {backgroundColor: colors.info + '15'}]}>
+                <Icon name="people" size={24} color={colors.info} />
+              </View>
+              <View style={styles.actionText}>
+                <Text style={styles.actionTitle}>View Applicants</Text>
+                <Text style={styles.actionSubtitle}>All applicants of active jobs</Text>
               </View>
             </View>
             <Icon name="chevron-forward" size={20} color={colors.textTertiary} />
@@ -98,27 +124,12 @@ export const EmployerDashboardScreen: React.FC<any> = ({navigation}) => {
             style={styles.actionCard}
             onPress={() => navigation.navigate('ManageJobs')}>
             <View style={styles.actionContent}>
-              <View style={[styles.actionIconContainer, {backgroundColor: colors.info + '15'}]}>
-                <Icon name="clipboard" size={24} color={colors.info} />
+              <View style={[styles.actionIconContainer, {backgroundColor: colors.warning + '15'}]}>
+                <Icon name="clipboard" size={24} color={colors.warning} />
               </View>
               <View style={styles.actionText}>
                 <Text style={styles.actionTitle}>Manage Jobs</Text>
-                <Text style={styles.actionSubtitle}>View and edit your job postings</Text>
-              </View>
-            </View>
-            <Icon name="chevron-forward" size={20} color={colors.textTertiary} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.actionCard}
-            onPress={() => navigation.navigate('CompanyProfile')}>
-            <View style={styles.actionContent}>
-              <View style={[styles.actionIconContainer, {backgroundColor: colors.warning + '15'}]}>
-                <Icon name="business" size={24} color={colors.warning} />
-              </View>
-              <View style={styles.actionText}>
-                <Text style={styles.actionTitle}>Company Profile</Text>
-                <Text style={styles.actionSubtitle}>Update company information</Text>
+                <Text style={styles.actionSubtitle}>View & edit job details</Text>
               </View>
             </View>
             <Icon name="chevron-forward" size={20} color={colors.textTertiary} />
@@ -143,6 +154,11 @@ const styles = StyleSheet.create({
   title: {
     ...typography.h2,
     color: colors.textPrimary,
+  },
+  welcomeText: {
+    ...typography.h2,
+    color: colors.textPrimary,
+    marginTop: spacing.xs,
   },
   statsGrid: {
     flexDirection: 'row',

@@ -36,7 +36,7 @@ export const jobsApi = {
     location: string;
     type: string;
     experienceLevel: string;
-    salaryRange?: string;
+    salaryRange: string;
     skillsRequired: string[];
   }): Promise<Job> {
     const response = await axiosInstance.post('/jobs', jobData);
