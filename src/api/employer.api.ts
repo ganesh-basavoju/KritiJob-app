@@ -105,4 +105,11 @@ export const employerApi = {
     const response = await axiosInstance.get(`/employer/candidates/${id}`);
     return response.data.data;
   },
+
+  async getAllApplicants(page: number = 1, limit: number = 20): Promise<PaginatedResponse<Application>> {
+    const response = await axiosInstance.get('/applications/employer/all', {
+      params: {page, limit},
+    });
+    return response.data;
+  },
 };

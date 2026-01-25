@@ -11,16 +11,17 @@ export const API_BASE_URL = `http://${device_Ip}:5000/api`
 export const ITEMS_PER_PAGE = 20;
 
 export const JOB_TYPES = [
-  {label: 'Full Time', value: 'full-time'},
-  {label: 'Part Time', value: 'part-time'},
-  {label: 'Contract', value: 'contract'},
-  {label: 'Internship', value: 'internship'},
+  {label: 'Full Time', value: 'Full-Time'},
+  {label: 'Part Time', value: 'Part-Time'},
+  {label: 'Contract', value: 'Contract'},
+  {label: 'Internship', value: 'Internship'},
+  {label: 'Freelance', value: 'Freelance'},
 ];
 
 export const EXPERIENCE_LEVELS = [
-  {label: 'Entry Level', value: '0-1'},
-  {label: 'Mid Level', value: '2-5'},
-  {label: 'Senior Level', value: '5+'},
+  {label: 'Entry Level', value: 'Entry Level'},
+  {label: 'Intermediate', value: 'Intermediate'},
+  {label: 'Expert', value: 'Expert'},
 ];
 
 export const APPLICATION_STATUS = {

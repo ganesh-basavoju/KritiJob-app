@@ -133,6 +133,6 @@ export interface ApiError {
 export interface EmployerStats {
   activeJobs: number;
   totalApplications: number;
-  pendingApplications: number;
-  shortlistedCandidates: number;
+  newApplications: number;
+  jobsExpiringSoon: number;
 }
