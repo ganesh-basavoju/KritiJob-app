@@ -5,6 +5,9 @@
 import axiosInstance from './axios';
 import {Application, PaginatedResponse} from '../types';
 
+// RE-EXPORT TYPES so the screen can import them from here
+export type { Application, PaginatedResponse };
+
 export const applicationsApi = {
   async applyForJob(
     jobId: string,

@@ -1,5 +1,5 @@
 // ============================================
-// MANAGE JOBS SCREEN (Updated for API Alignment + Delete)
+// MANAGE JOBS SCREEN hdvxvdhvhdxhdxcdchdc vdgvc gv  gvc cv gdvc gdgvdxgdxc vbxdvcdvchvdnhxxhvhxn
 // ============================================
 
 import React, {useEffect, useState} from 'react';
