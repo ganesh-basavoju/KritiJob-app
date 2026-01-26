@@ -9,10 +9,12 @@ export const applicationsApi = {
   async applyForJob(
     jobId: string,
     resumeUrl: string,
+    coverLetter?: string,
   ): Promise<Application> {
     const response = await axiosInstance.post('/applications', {
       jobId,
       resumeUrl,
+      coverLetter,
     });
     return response.data.data;
   },
@@ -59,6 +61,11 @@ export const applicationsApi = {
   ): Promise<Application> {
     const response = await axiosInstance.put(`/applications/${id}/status`, {status});
     return response.data.data;
+  },
+
+  async checkApplicationStatus(jobId: string): Promise<{applied: boolean; application: Application | null}> {
+    const response = await axiosInstance.get(`/applications/check/${jobId}`);
+    return response.data;
   },
 
   async withdrawApplication(id: string): Promise<void> {

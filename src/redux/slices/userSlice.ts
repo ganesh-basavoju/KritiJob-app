@@ -61,7 +61,10 @@ export const uploadAvatar = createAsyncThunk(
       const avatarUrl = await userApi.uploadAvatar(formData);
       return avatarUrl;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to upload avatar');
+      console.error('Upload avatar error in thunk:', error);
+      console.error('Error response:', error.response);
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to upload avatar';
+      return rejectWithValue(errorMsg);
     }
   },
 );

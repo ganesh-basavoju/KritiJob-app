@@ -32,9 +32,9 @@ const initialState: ApplicationsState = {
 
 export const applyForJob = createAsyncThunk(
   'applications/apply',
-  async ({jobId, coverLetter}: {jobId: string; coverLetter?: string}, {rejectWithValue}) => {
+  async ({jobId, coverLetter, resumeUrl}: {jobId: string; coverLetter?: string; resumeUrl: string}, {rejectWithValue}) => {
     try {
-      const application = await applicationsApi.applyForJob(jobId, coverLetter);
+      const application = await applicationsApi.applyForJob(jobId, resumeUrl, coverLetter);
       return application;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to apply for job');

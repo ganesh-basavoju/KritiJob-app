@@ -43,15 +43,20 @@ export const ApplicationsScreen: React.FC<any> = ({navigation}) => {
     <SafeAreaView style={styles.container} edges={['top']}>
       <FlatList
         data={applications}
-        renderItem={({item}) => (
-          <ApplicationCard
-            application={item}
-            onPress={() =>
-              navigation.navigate('JobDetails', {jobId: item.job.id})
-            }
-          />
-        )}
-        keyExtractor={item => item.id}
+        renderItem={({item}) => {
+          const job = (item as any).jobId || item.job;
+          const jobId = (job as any)?._id || job?.id;
+          return (
+            <ApplicationCard
+              application={item}
+              onPress={() => jobId && navigation.navigate('JobDetails', {jobId})}
+            />
+          );
+        }}
+        keyExtractor={(item, index) => {
+          const appId = (item as any)._id || item.id;
+          return appId ? `application-${String(appId)}-${index}` : `application-fallback-${index}`;
+        }}
         contentContainerStyle={styles.list}
         refreshing={refreshing}
         onRefresh={handleRefresh}

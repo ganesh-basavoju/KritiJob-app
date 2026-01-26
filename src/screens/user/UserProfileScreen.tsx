@@ -75,18 +75,24 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
         return;
       }
 
+      console.log('Selected image:', asset);
+
       const formData = new FormData();
       formData.append('avatar', {
-        uri: Platform.OS === 'ios' ? asset.uri.replace('file://', '') : asset.uri,
+        uri: Platform.OS === 'android' ? asset.uri : asset.uri.replace('file://', ''),
         type: asset.type || 'image/jpeg',
-        name: asset.fileName || 'avatar.jpg',
+        name: asset.fileName || `avatar_${Date.now()}.jpg`,
       } as any);
 
-      await dispatch(uploadAvatar(formData)).unwrap();
+      console.log('Uploading avatar...');
+      const response = await dispatch(uploadAvatar(formData)).unwrap();
+      console.log('Avatar uploaded:', response);
+      
       await loadProfile();
       Alert.alert('Success', 'Avatar uploaded successfully');
     } catch (error: any) {
-      Alert.alert('Error', error || 'Failed to upload avatar');
+      console.error('Avatar upload error:', error);
+      Alert.alert('Error', error?.message || error || 'Failed to upload avatar');
     }
   };
 
@@ -215,6 +221,14 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
   }
 
   const profileData = profile || user;
+  
+  // Debug avatar URL
+  console.log('Profile data:', {
+    profileAvatarUrl: profile?.avatarUrl,
+    profileAvatar: profile?.avatar,
+    userAvatar: user?.avatar,
+    userAvatarUrl: user?.avatarUrl,
+  });
 
   const getInitials = (name?: string) => {
     if (!name) return '';
@@ -230,9 +244,9 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
         {/* Header with Avatar */}
         <View style={styles.header}>
           <View style={styles.avatarWrapper}>
-            {profileData?.avatarUrl || profile?.avatar ? (
+            {profile?.avatarUrl ? (
               <Image 
-                source={{ uri: profileData?.avatarUrl || profile?.avatar }} 
+                source={{ uri: `${profile.avatarUrl}?t=${Date.now()}` }} 
                 style={styles.avatarImage}
               />
             ) : (
