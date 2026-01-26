@@ -21,7 +21,6 @@ import {colors} from '../../theme/colors';
 import {spacing, borderRadius} from '../../theme/spacing';
 import {typography} from '../../theme/typography';
 import {API_BASE_URL} from '../../utils/constants';
-// CORRECTED IMPORT
 import {storageService} from '../../services/storage.service';
 
 // --- Types ---
@@ -44,8 +43,9 @@ interface ApiResponse {
 export const EmployerProfileScreen: React.FC<any> = ({navigation}) => {
   const {user} = useSelector((state: RootState) => state.auth);
   
+  // MODIFIED: Initial name is now empty string, not user?.name
   const initialFormData: CompanyData = {
-    name: user?.name || '', 
+    name: '',
     description: '',
     logoUrl: '',
     website: '',
@@ -64,8 +64,6 @@ export const EmployerProfileScreen: React.FC<any> = ({navigation}) => {
   const fetchCompanyData = async () => {
     try {
       setFetching(true);
-      
-      // FIX: Using the correct function name 'getAccessToken'
       const token = await storageService.getAccessToken();
       
       if (!token) {
@@ -89,14 +87,15 @@ export const EmployerProfileScreen: React.FC<any> = ({navigation}) => {
       const json: ApiResponse = await response.json();
 
       if (json.success && json.data) {
-        setFormData(prev => ({
-          name: json.data!.name || prev.name, 
+        // MODIFIED: Set form data directly from API response, no fallback to user name
+        setFormData({
+          name: json.data!.name || '',
           description: json.data!.description || '',
           logoUrl: json.data!.logoUrl || '',
           website: json.data!.website || '',
           location: json.data!.location || '',
           employeesCount: json.data!.employeesCount || '',
-        }));
+        });
       }
     } catch (error: any) {
       console.error('Fetch Error:', error);
@@ -113,11 +112,7 @@ export const EmployerProfileScreen: React.FC<any> = ({navigation}) => {
 
     setLoading(true);
     try {
-      // FIX: Using the correct function name 'getAccessToken'
       const token = await storageService.getAccessToken();
-      
-      console.log('Attempting to save profile...');
-      console.log('URL:', `${API_BASE_URL}/company`);
       
       if (!token) {
         throw new Error('Authentication token missing. Please log out and log in again.');

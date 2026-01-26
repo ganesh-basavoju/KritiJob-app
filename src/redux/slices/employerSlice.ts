@@ -1,5 +1,5 @@
 // ============================================
-// EMPLOYER SLICE
+// EMPLOYER SLICE (Updated)
 // ============================================
 
 import {createSlice, createAsyncThunk} from '@reduxjs/toolkit';
@@ -169,6 +169,8 @@ const employerSlice = createSlice({
       .addCase(fetchEmployerStats.fulfilled, (state, action) => {
         state.stats = action.payload;
       })
+      
+      // Create Job Handlers
       .addCase(createJob.pending, state => {
         state.loading = true;
         state.error = null;
@@ -181,15 +183,30 @@ const employerSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
+
+      // Update Job Handlers (Added Pending to enable loading spinner)
+      .addCase(updateJob.pending, state => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(updateJob.fulfilled, (state, action) => {
-        const index = state.jobs.findIndex(job => job.id === action.payload.id);
+        state.loading = false;
+        // FIX: Find by _id (MongoDB) instead of id
+        const index = state.jobs.findIndex(job => job._id === action.payload._id);
         if (index !== -1) {
           state.jobs[index] = action.payload;
         }
       })
-      .addCase(deleteJob.fulfilled, (state, action) => {
-        state.jobs = state.jobs.filter(job => job.id !== action.payload);
+      .addCase(updateJob.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       })
+
+      .addCase(deleteJob.fulfilled, (state, action) => {
+        // FIX: Find by _id
+        state.jobs = state.jobs.filter(job => job._id !== action.payload);
+      })
+      
       .addCase(fetchMyJobs.pending, state => {
         state.loading = true;
         state.error = null;
@@ -211,18 +228,20 @@ const employerSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
+      
       .addCase(closeJob.fulfilled, (state, action) => {
-        const index = state.jobs.findIndex(job => job.id === action.payload.id);
+        const index = state.jobs.findIndex(job => job._id === action.payload._id);
         if (index !== -1) {
           state.jobs[index] = action.payload;
         }
       })
       .addCase(reopenJob.fulfilled, (state, action) => {
-        const index = state.jobs.findIndex(job => job.id === action.payload.id);
+        const index = state.jobs.findIndex(job => job._id === action.payload._id);
         if (index !== -1) {
           state.jobs[index] = action.payload;
         }
       })
+      
       .addCase(fetchApplicants.pending, state => {
         state.loading = true;
         state.error = null;
@@ -239,15 +258,16 @@ const employerSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
+      
       .addCase(fetchApplicantById.fulfilled, (state, action) => {
         state.currentApplicant = action.payload;
       })
       .addCase(updateApplicationStatus.fulfilled, (state, action) => {
-        const index = state.applicants.findIndex(app => app.id === action.payload.id);
+        const index = state.applicants.findIndex(app => app._id === action.payload._id);
         if (index !== -1) {
           state.applicants[index] = action.payload;
         }
-        if (state.currentApplicant?.id === action.payload.id) {
+        if (state.currentApplicant?._id === action.payload._id) {
           state.currentApplicant = action.payload;
         }
       });

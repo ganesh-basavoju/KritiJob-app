@@ -2,7 +2,7 @@
 // MORE SCREEN (EMPLOYER)
 // ============================================
 
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useDispatch, useSelector} from 'react-redux';
@@ -12,10 +12,43 @@ import {AppDispatch, RootState} from '../../redux/store';
 import {colors} from '../../theme/colors';
 import {spacing, borderRadius} from '../../theme/spacing';
 import {typography} from '../../theme/typography';
+import {API_BASE_URL} from '../../utils/constants';
+import {storageService} from '../../services/storage.service';
 
 export const MoreScreen: React.FC<any> = ({navigation}) => {
   const dispatch = useDispatch<AppDispatch>();
   const {user} = useSelector((state: RootState) => state.auth);
+  
+  // State to store company data
+  const [company, setCompany] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchCompanyData = async () => {
+      try {
+        const token = await storageService.getAccessToken();
+        if (!token) return;
+
+        const response = await fetch(`${API_BASE_URL}/company/me`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const json = await response.json();
+          if (json.success && json.data) {
+            setCompany(json.data);
+          }
+        }
+      } catch (error) {
+        console.log('Error fetching company:', error);
+      }
+    };
+
+    fetchCompanyData();
+  }, []);
 
   const handleLogout = () => {
     Alert.alert(
@@ -46,20 +79,10 @@ export const MoreScreen: React.FC<any> = ({navigation}) => {
       onPress: () => navigation.navigate('Notifications'),
     },
     {
-      id: 'profile',
-      title: 'Profile Settings',
-      icon: 'person-outline',
-      // onPress: () => {
-      //   // TODO: Navigate to profile settings
-      //   Alert.alert('Coming Soon', 'Profile settings will be available soon');
-      onPress: () => navigation.navigate('EmployerProfile'),
-      },
-    {
       id: 'help',
       title: 'Help & Support',
       icon: 'help-circle-outline',
       onPress: () => {
-        // TODO: Navigate to help
         Alert.alert('Coming Soon', 'Help & support will be available soon');
       },
     },
@@ -68,7 +91,6 @@ export const MoreScreen: React.FC<any> = ({navigation}) => {
       title: 'About',
       icon: 'information-circle-outline',
       onPress: () => {
-        // TODO: Navigate to about
         Alert.alert('About', 'Kriti Job App v1.0.0');
       },
     },
@@ -84,6 +106,19 @@ export const MoreScreen: React.FC<any> = ({navigation}) => {
           </View>
           <Text style={styles.userName}>{user?.name || 'Employer'}</Text>
           <Text style={styles.userEmail}>{user?.email}</Text>
+          
+          {/* Logic: Display Name if exists, else show Warning Message */}
+          {company && company.name ? (
+            <Text style={styles.companyName}>{company.name}</Text>
+          ) : (
+            <TouchableOpacity
+              onPress={() => navigation.navigate('ProfileTab', { screen: 'EmployerProfileMain' })}
+              activeOpacity={0.7}
+              style={styles.warningContainer}>
+              <Icon name="warning" size={16} color={colors.warning} style={{marginRight: 4}} />
+              <Text style={styles.warningText}>Create your company profile first</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Menu Items */}
@@ -139,6 +174,24 @@ const styles = StyleSheet.create({
   userEmail: {
     ...typography.body2,
     color: colors.textSecondary,
+  },
+  companyName: {
+    ...typography.body2,
+    color: colors.textPrimary,
+    marginTop: spacing.xs,
+    fontWeight: '600',
+  },
+  warningContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.sm,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  warningText: {
+    ...typography.body2,
+    color: colors.warning,
+    fontWeight: '600',
   },
   menuSection: {
     backgroundColor: colors.card,

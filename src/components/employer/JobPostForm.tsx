@@ -1,5 +1,5 @@
 // ============================================
-// JOB POST FORM COMPONENT
+// JOB POST FORM COMPONENT (Updated)
 // ============================================
 
 import React, {useState, useEffect} from 'react';
@@ -20,11 +20,13 @@ import {typography} from '../../theme/typography';
 import {Button} from '../common/Button';
 import {Input} from '../common/Input';
 import {JOB_TYPES, EXPERIENCE_LEVELS} from '../../utils/constants';
+import {API_BASE_URL} from '../../utils/constants';
+import {storageService} from '../../services/storage.service';
 
 interface JobPostFormProps {
   onSubmit: (data: any) => void;
   loading: boolean;
-  initialData?: any;
+  initialData?: any; // Populated by parent for Edit Mode
 }
 
 export const JobPostForm: React.FC<JobPostFormProps> = ({
@@ -32,8 +34,9 @@ export const JobPostForm: React.FC<JobPostFormProps> = ({
   loading,
   initialData,
 }) => {
-  const {control, handleSubmit, setValue} = useForm({
+  const {control, handleSubmit, setValue, reset} = useForm({
     defaultValues: initialData || {
+      companyName: '', // Added to default values
       title: '',
       description: '',
       location: '',
@@ -45,6 +48,7 @@ export const JobPostForm: React.FC<JobPostFormProps> = ({
     },
   });
 
+  // Local State for UI Chips (since visual selection depends on state, not just form value)
   const [selectedType, setSelectedType] = useState(
     initialData?.type || 'Full-Time',
   );
@@ -56,6 +60,52 @@ export const JobPostForm: React.FC<JobPostFormProps> = ({
     initialData?.deadline ? new Date(initialData.deadline) : null,
   );
 
+  // Fetch Company Name on mount (if not provided in initialData)
+  useEffect(() => {
+    const fetchCompanyData = async () => {
+      // If we are editing and initialData already has the name, skip fetch
+      if (initialData?.companyName) return;
+
+      try {
+        const token = await storageService.getAccessToken();
+        if (!token) return;
+
+        const response = await fetch(`${API_BASE_URL}/company/me`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const json = await response.json();
+          if (json.success && json.data?.name) {
+            setValue('companyName', json.data.name);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching company name:', error);
+      }
+    };
+
+    fetchCompanyData();
+  }, [initialData, setValue]);
+
+  // CRITICAL: Sync form and local UI state when initialData is received (Edit Mode)
+  useEffect(() => {
+    if (initialData) {
+      // 1. Reset the entire form with new data
+      reset(initialData);
+      
+      // 2. Update local UI state for the chips to highlight correctly
+      if (initialData.type) setSelectedType(initialData.type);
+      if (initialData.experienceLevel) setSelectedExperience(initialData.experienceLevel);
+      if (initialData.deadline) setSelectedDate(new Date(initialData.deadline));
+    }
+  }, [initialData, reset]);
+
+  // Sync Form Values when Local State changes (User Interaction)
   useEffect(() => {
     setValue('type', selectedType);
   }, [selectedType, setValue]);
@@ -71,6 +121,7 @@ export const JobPostForm: React.FC<JobPostFormProps> = ({
   const handleFormSubmit = (data: any) => {
     const formattedData = {
       ...data,
+      // Convert comma-separated string back to array for API
       skillsRequired: data.skillsRequired
         .split(',')
         .map((skill: string) => skill.trim())
@@ -81,6 +132,25 @@ export const JobPostForm: React.FC<JobPostFormProps> = ({
 
   return (
     <ScrollView style={styles.container}>
+      
+      {/* NEW: Company Name Field (Read-Only) */}
+      <Controller
+        control={control}
+        name="companyName"
+        rules={{required: 'Company Name is required'}}
+        render={({field: {onChange, value}, fieldState: {error}}) => (
+          <Input
+            label="Company Name*"
+            placeholder="Fetching..."
+            value={value}
+            onChangeText={onChange}
+            error={error?.message}
+            editable={false} // Prevents user from changing the name
+            style={{ backgroundColor: colors.backgroundTertiary }}
+          />
+        )}
+      />
+
       <Controller
         control={control}
         name="title"
