@@ -7,7 +7,7 @@ import {View, StyleSheet, FlatList, TouchableOpacity, Text} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useDispatch, useSelector} from 'react-redux';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {fetchJobs, setFilters, clearFilters} from '../../redux/slices/jobsSlice';
+import {fetchJobFeed, setFilters, clearFilters} from '../../redux/slices/jobsSlice';
 import {AppDispatch, RootState} from '../../redux/store';
 import {JobCard} from '../../components/jobs/JobCard';
 import {JobFiltersComponent} from '../../components/jobs/JobFilters';
@@ -20,18 +20,22 @@ import {typography} from '../../theme/typography';
 
 export const JobFeedScreen: React.FC<any> = ({navigation}) => {
   const dispatch = useDispatch<AppDispatch>();
-  const {jobs, loading, error, pagination, filters} = useSelector(
+  const {feedJobs, feedLoading, error, feedPagination, filters} = useSelector(
     (state: RootState) => state.jobs,
   );
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    loadJobs(1);
+    const loadData = async () => {
+      await dispatch(fetchJobFeed({page: 1, filters}));
+    };
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
   const loadJobs = async (page: number) => {
-    await dispatch(fetchJobs({page, filters}));
+    await dispatch(fetchJobFeed({page, filters}));
   };
 
   const handleRefresh = async () => {
@@ -41,8 +45,8 @@ export const JobFeedScreen: React.FC<any> = ({navigation}) => {
   };
 
   const handleLoadMore = () => {
-    if (pagination.page < pagination.totalPages && !loading) {
-      loadJobs(pagination.page + 1);
+    if (feedPagination.page < feedPagination.totalPages && !feedLoading) {
+      loadJobs(feedPagination.page + 1);
     }
   };
 
@@ -71,7 +75,7 @@ export const JobFeedScreen: React.FC<any> = ({navigation}) => {
     </View>
   );
 
-  if (loading && jobs.length === 0) {
+  if (feedLoading && feedJobs.length === 0) {
     return <Loader />;
   }
 
@@ -80,14 +84,17 @@ export const JobFeedScreen: React.FC<any> = ({navigation}) => {
       {renderHeader()}
       {error && <ErrorText message={error} />}
       <FlatList
-        data={jobs}
+        data={feedJobs}
         renderItem={({item}) => (
           <JobCard
             job={item}
-            onPress={() => navigation.navigate('JobDetails', {jobId: item.id})}
+            onPress={() => navigation.navigate('JobDetails', {jobId: (item as any)._id || item.id})}
           />
         )}
-        keyExtractor={(item, index) => (item.id ? String(item.id) : `job-${index}`)}
+        keyExtractor={(item, index) => {
+          const id = (item as any)._id || item.id;
+          return id ? `job-${String(id)}-${index}` : `job-fallback-${index}`;
+        }}
         contentContainerStyle={styles.list}
         refreshing={refreshing}
         onRefresh={handleRefresh}

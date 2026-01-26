@@ -7,8 +7,9 @@ import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert} from 'react
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useDispatch, useSelector} from 'react-redux';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {fetchJobById, saveJob, unsaveJob} from '../../redux/slices/jobsSlice';
+import {fetchJobById, saveJob, unsaveJob, addAppliedJobId} from '../../redux/slices/jobsSlice';
 import {applyForJob} from '../../redux/slices/applicationsSlice';
+import {fetchUserProfile} from '../../redux/slices/userSlice';
 import {AppDispatch, RootState} from '../../redux/store';
 import {Button} from '../../components/common/Button';
 import {Loader} from '../../components/common/Loader';
@@ -20,18 +21,38 @@ import {formatDate} from '../../utils/dateFormatter';
 import {jobsApi} from '../../api/jobs.api';
 import {applicationsApi} from '../../api/applications.api';
 
+// Helper function to strip HTML tags
+const stripHtmlTags = (html: string): string => {
+  if (!html) return '';
+  return html
+    .replace(/<[^>]*>/g, '') // Remove HTML tags
+    .replace(/&nbsp;/g, ' ') // Replace &nbsp; with space
+    .replace(/&amp;/g, '&') // Replace &amp; with &
+    .replace(/&lt;/g, '<') // Replace &lt; with <
+    .replace(/&gt;/g, '>') // Replace &gt; with >
+    .replace(/&quot;/g, '"') // Replace &quot; with "
+    .replace(/&#39;/g, "'") // Replace &#39; with '
+    .trim();
+};
+
 export const JobDetailsScreen: React.FC<any> = ({navigation, route}) => {
   const {jobId} = route.params;
   const dispatch = useDispatch<AppDispatch>();
-  const {currentJob, loading, error} = useSelector((state: RootState) => state.jobs);
+  const {currentJob, currentJobLoading} = useSelector((state: RootState) => state.jobs);
   const {loading: applyLoading} = useSelector((state: RootState) => state.applications);
+  const {profile} = useSelector((state: RootState) => state.user);
   const [isSaved, setIsSaved] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
 
   useEffect(() => {
-    loadJobDetails();
-    checkSavedStatus();
-    checkApplicationStatus();
+    const loadData = async () => {
+      await loadJobDetails();
+      await checkSavedStatus();
+      await checkApplicationStatus();
+      await dispatch(fetchUserProfile());
+    };
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobId]);
 
   const loadJobDetails = async () => {
@@ -42,14 +63,18 @@ export const JobDetailsScreen: React.FC<any> = ({navigation, route}) => {
     try {
       const saved = await jobsApi.isJobSaved(jobId);
       setIsSaved(saved);
-    } catch (err) {}
+    } catch {
+      // Ignore error
+    }
   };
 
   const checkApplicationStatus = async () => {
     try {
       const status = await applicationsApi.checkApplicationStatus(jobId);
       setHasApplied(status.applied);
-    } catch (err) {}
+    } catch {
+      // Ignore error
+    }
   };
 
   const handleSaveToggle = async () => {
@@ -63,21 +88,54 @@ export const JobDetailsScreen: React.FC<any> = ({navigation, route}) => {
   };
 
   const handleApply = () => {
+    // Check if user has uploaded a resume
+    let resumeUrl = null;
+    if (profile) {
+      // Check defaultResumeUrl first
+      if (profile.defaultResumeUrl) {
+        resumeUrl = profile.defaultResumeUrl;
+      }
+      // Check resumes array
+      else if (profile.resumes && Array.isArray(profile.resumes) && profile.resumes.length > 0) {
+        resumeUrl = profile.resumes[0].url;
+      }
+      // Check legacy resume field
+      else if (profile.resume) {
+        resumeUrl = profile.resume;
+      }
+    }
+    
+    if (!resumeUrl) {
+      Alert.alert(
+        'Resume Required',
+        'Please upload a resume to your profile before applying for jobs.',
+        [
+          {text: 'Cancel', style: 'cancel'},
+          {text: 'Go to Profile', onPress: () => navigation.navigate('Profile')},
+        ]
+      );
+      return;
+    }
+
     Alert.alert('Apply for Job', 'Do you want to apply for this position?', [
       {text: 'Cancel', style: 'cancel'},
-      {text: 'Apply', onPress: submitApplication},
+      {text: 'Apply', onPress: () => submitApplication(resumeUrl)},
     ]);
   };
 
-  const submitApplication = async () => {
-    const result = await dispatch(applyForJob({jobId, coverLetter: ''}));
-    if (!result.error) {
+  const submitApplication = async (resumeUrl: string) => {
+    const result: any = await dispatch(applyForJob({jobId, coverLetter: '', resumeUrl}));
+    if (result.meta && result.meta.requestStatus === 'fulfilled') {
       setHasApplied(true);
+      dispatch(addAppliedJobId(jobId)); // Update Redux state to remove from feed/saved
       Alert.alert('Success', 'Application submitted successfully!');
+    } else {
+      const errorMessage = (result.payload as string) || 'Failed to submit application. Please try again.';
+      Alert.alert('Application Failed', errorMessage);
     }
   };
 
-  if (loading && !currentJob) {
+  if (currentJobLoading && !currentJob) {
     return <Loader />;
   }
 
@@ -95,7 +153,7 @@ export const JobDetailsScreen: React.FC<any> = ({navigation, route}) => {
         <View style={styles.header}>
           <View style={styles.titleContainer}>
             <Text style={styles.title}>{currentJob.title}</Text>
-            <Text style={styles.company}>{currentJob.company.name}</Text>
+            <Text style={styles.company}>{(currentJob as any).companyId?.name || currentJob.company?.name}</Text>
           </View>
           <TouchableOpacity onPress={handleSaveToggle}>
             <Icon
@@ -117,21 +175,31 @@ export const JobDetailsScreen: React.FC<any> = ({navigation, route}) => {
           </View>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Experience</Text>
-            <Text style={styles.detailValue}>{currentJob.experience}</Text>
+            <Text style={styles.detailValue}>{(currentJob as any).experienceLevel || currentJob.experience}</Text>
           </View>
         </View>
 
-        {currentJob.salary && (
+        {(currentJob as any).deadline && (
+          <View style={styles.deadlineContainer}>
+            <Icon name="time-outline" size={20} color={colors.warning} />
+            <View style={styles.deadlineTextContainer}>
+              <Text style={styles.deadlineLabel}>Application Deadline</Text>
+              <Text style={styles.deadlineValue}>{formatDate((currentJob as any).deadline)}</Text>
+            </View>
+          </View>
+        )}
+
+        {((currentJob as any).salaryRange || currentJob.salary) && (
           <View style={styles.salaryContainer}>
-            <Text style={styles.salaryLabel}>Salary</Text>
-            <Text style={styles.salaryValue}>{currentJob.salary}</Text>
+            <Text style={styles.salaryLabel}>Salary Range</Text>
+            <Text style={styles.salaryValue}>{(currentJob as any).salaryRange || currentJob.salary}</Text>
           </View>
         )}
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Required Skills</Text>
           <View style={styles.skills}>
-            {currentJob.skills.map((skill, index) => (
+            {((currentJob as any).skillsRequired || currentJob.skills || []).map((skill: string, index: number) => (
               <View key={index} style={styles.skillTag}>
                 <Text style={styles.skillText}>{skill}</Text>
               </View>
@@ -141,25 +209,29 @@ export const JobDetailsScreen: React.FC<any> = ({navigation, route}) => {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Job Description</Text>
-          <Text style={styles.description}>{currentJob.description}</Text>
+          <Text style={styles.description}>{stripHtmlTags(currentJob.description)}</Text>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>About Company</Text>
-          <Text style={styles.companyName}>{currentJob.company.name}</Text>
-          <Text style={styles.companyDescription}>{currentJob.company.description}</Text>
+          <Text style={styles.companyName}>{(currentJob as any).companyId?.name || currentJob.company?.name}</Text>
+          <Text style={styles.companyDescription}>{stripHtmlTags((currentJob as any).companyId?.description || currentJob.company?.description || '')}</Text>
           <View style={styles.companyDetailRow}>
             <Icon name="location-outline" size={16} color={colors.textSecondary} />
-            <Text style={styles.companyDetail}>{currentJob.company.location}</Text>
+            <Text style={styles.companyDetail}>{(currentJob as any).companyId?.location || currentJob.company?.location}</Text>
           </View>
-          <View style={styles.companyDetailRow}>
-            <Icon name="people-outline" size={16} color={colors.textSecondary} />
-            <Text style={styles.companyDetail}>{currentJob.company.size}</Text>
-          </View>
-          <View style={styles.companyDetailRow}>
-            <Icon name="business-outline" size={16} color={colors.textSecondary} />
-            <Text style={styles.companyDetail}>{currentJob.company.industry}</Text>
-          </View>
+          {((currentJob as any).companyId?.size || currentJob.company?.size) && (
+            <View style={styles.companyDetailRow}>
+              <Icon name="people-outline" size={16} color={colors.textSecondary} />
+              <Text style={styles.companyDetail}>{(currentJob as any).companyId?.size || currentJob.company?.size}</Text>
+            </View>
+          )}
+          {((currentJob as any).companyId?.industry || currentJob.company?.industry) && (
+            <View style={styles.companyDetailRow}>
+              <Icon name="business-outline" size={16} color={colors.textSecondary} />
+              <Text style={styles.companyDetail}>{(currentJob as any).companyId?.industry || currentJob.company?.industry}</Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.footer}>
@@ -170,7 +242,7 @@ export const JobDetailsScreen: React.FC<any> = ({navigation, route}) => {
 
       <View style={styles.applyContainer}>
         {hasApplied ? (
-          <Button title="Already Applied" disabled style={styles.applyButton} />
+          <Button title="Applied" disabled onPress={() => {}} style={styles.applyButton} />
         ) : (
           <Button
             title="Apply Now"
@@ -230,6 +302,32 @@ const styles = StyleSheet.create({
   detailValue: {
     ...typography.body1,
     color: colors.textPrimary,
+  },
+  deadlineContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.warning + '15',
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
+    marginBottom: spacing.lg,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.warning,
+  },
+  deadlineTextContainer: {
+    marginLeft: spacing.sm,
+    flex: 1,
+  },
+  deadlineLabel: {
+    ...typography.caption,
+    color: colors.warning,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    marginBottom: spacing.xs,
+  },
+  deadlineValue: {
+    ...typography.body1,
+    color: colors.textPrimary,
+    fontWeight: '700',
   },
   salaryContainer: {
     backgroundColor: colors.card,

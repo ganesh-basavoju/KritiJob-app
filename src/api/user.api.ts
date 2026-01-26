@@ -30,16 +30,13 @@ export const userApi = {
   },
 
   async uploadAvatar(formData: FormData): Promise<string> {
+    console.log('API: Uploading avatar to /candidate/avatar');
     const response = await axiosInstance.post('/candidate/avatar', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
-      transformRequest: (data, headers) => {
-        // Let axios set the Content-Type with proper boundary
-        delete headers['Content-Type'];
-        return data;
-      },
     });
+    console.log('API: Avatar upload response:', response.data);
     return response.data.data;
   },
 

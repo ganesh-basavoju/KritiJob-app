@@ -1,44 +1,71 @@
 // ============================================
-// JOBS SLICE
+// JOBS SLICE (RESTRUCTURED)
 // ============================================
 
 import {createSlice, createAsyncThunk} from '@reduxjs/toolkit';
 import {jobsApi} from '../../api/jobs.api';
-import {Job, JobFilters, SavedJob} from '../../types';
+import {Job, JobFilters} from '../../types';
 
 interface JobsState {
-  jobs: Job[];
-  savedJobs: SavedJob[];
-  currentJob: Job | null;
-  loading: boolean;
-  error: string | null;
-  pagination: {
+  // Job Feed (filtered by backend)
+  feedJobs: Job[];
+  feedPagination: {
     page: number;
     totalPages: number;
     total: number;
   };
+  feedLoading: boolean;
+  
+  // Saved Jobs (filtered by backend)
+  savedJobs: Job[];
+  savedJobsLoading: boolean;
+  
+  // Current Job (for details screen)
+  currentJob: Job | null;
+  currentJobLoading: boolean;
+  
+  // Applied Job IDs (for quick lookups)
+  appliedJobIds: string[];
+  
+  // General
+  error: string | null;
   filters: JobFilters;
 }
 
 const initialState: JobsState = {
-  jobs: [],
-  savedJobs: [],
-  currentJob: null,
-  loading: false,
-  error: null,
-  pagination: {
+  feedJobs: [],
+  feedPagination: {
     page: 1,
     totalPages: 1,
     total: 0,
   },
+  feedLoading: false,
+  savedJobs: [],
+  savedJobsLoading: false,
+  currentJob: null,
+  currentJobLoading: false,
+  appliedJobIds: [],
+  error: null,
   filters: {},
 };
+
+export const fetchJobFeed = createAsyncThunk(
+  'jobs/fetchJobFeed',
+  async ({page, filters}: {page: number; filters?: JobFilters}, {rejectWithValue}) => {
+    try {
+      const response = await jobsApi.getJobFeed(page, 20, filters);
+      return response;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch job feed');
+    }
+  },
+);
 
 export const fetchJobs = createAsyncThunk(
   'jobs/fetchJobs',
   async ({page, filters}: {page: number; filters?: JobFilters}, {rejectWithValue}) => {
     try {
-      const response = await jobsApi.getJobs(page, 20, filters);
+      const response = await jobsApi.getJobFeed(page, 20, filters);
       return response;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch jobs');
@@ -58,24 +85,12 @@ export const fetchJobById = createAsyncThunk(
   },
 );
 
-export const searchJobs = createAsyncThunk(
-  'jobs/searchJobs',
-  async ({query, page}: {query: string; page: number}, {rejectWithValue}) => {
-    try {
-      const response = await jobsApi.searchJobs(query, page);
-      return response;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to search jobs');
-    }
-  },
-);
-
 export const fetchSavedJobs = createAsyncThunk(
   'jobs/fetchSavedJobs',
-  async (page: number, {rejectWithValue}) => {
+  async (_, {rejectWithValue}) => {
     try {
-      const response = await jobsApi.getSavedJobs(page);
-      return response;
+      const response = await jobsApi.getSavedJobs(1, 100);
+      return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch saved jobs');
     }
@@ -86,8 +101,8 @@ export const saveJob = createAsyncThunk(
   'jobs/saveJob',
   async (jobId: string, {rejectWithValue}) => {
     try {
-      const savedJob = await jobsApi.saveJob(jobId);
-      return savedJob;
+      await jobsApi.saveJob(jobId);
+      return jobId;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to save job');
     }
@@ -119,80 +134,101 @@ const jobsSlice = createSlice({
     clearFilters: state => {
       state.filters = {};
     },
+    setAppliedJobIds: (state, action) => {
+      state.appliedJobIds = action.payload;
+    },
+    addAppliedJobId: (state, action) => {
+      if (!state.appliedJobIds.includes(action.payload)) {
+        state.appliedJobIds.push(action.payload);
+      }
+      // Remove from feed
+      state.feedJobs = state.feedJobs.filter(job => (job as any)._id !== action.payload && job.id !== action.payload);
+      // Remove from saved
+      state.savedJobs = state.savedJobs.filter(job => (job as any)._id !== action.payload && job.id !== action.payload);
+    },
   },
   extraReducers: builder => {
     builder
+      // Feed Jobs
+      .addCase(fetchJobFeed.pending, state => {
+        state.feedLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchJobFeed.fulfilled, (state, action) => {
+        state.feedLoading = false;
+        if (action.payload.page === 1) {
+          state.feedJobs = action.payload.data;
+        } else {
+          state.feedJobs = [...state.feedJobs, ...action.payload.data];
+        }
+        state.feedPagination = {
+          page: action.payload.page,
+          totalPages: action.payload.totalPages,
+          total: action.payload.total,
+        };
+      })
+      .addCase(fetchJobFeed.rejected, (state, action) => {
+        state.feedLoading = false;
+        state.error = action.payload as string;
+      })
+      // Legacy fetchJobs (same as fetchJobFeed)
       .addCase(fetchJobs.pending, state => {
-        state.loading = true;
+        state.feedLoading = true;
         state.error = null;
       })
       .addCase(fetchJobs.fulfilled, (state, action) => {
-        state.loading = false;
+        state.feedLoading = false;
         if (action.payload.page === 1) {
-          state.jobs = action.payload.data;
+          state.feedJobs = action.payload.data;
         } else {
-          state.jobs = [...state.jobs, ...action.payload.data];
+          state.feedJobs = [...state.feedJobs, ...action.payload.data];
         }
-        state.pagination = {
+        state.feedPagination = {
           page: action.payload.page,
           totalPages: action.payload.totalPages,
           total: action.payload.total,
         };
       })
       .addCase(fetchJobs.rejected, (state, action) => {
-        state.loading = false;
+        state.feedLoading = false;
         state.error = action.payload as string;
       })
+      // Current Job
       .addCase(fetchJobById.pending, state => {
-        state.loading = true;
+        state.currentJobLoading = true;
         state.error = null;
       })
       .addCase(fetchJobById.fulfilled, (state, action) => {
-        state.loading = false;
+        state.currentJobLoading = false;
         state.currentJob = action.payload;
       })
       .addCase(fetchJobById.rejected, (state, action) => {
-        state.loading = false;
+        state.currentJobLoading = false;
         state.error = action.payload as string;
       })
-      .addCase(searchJobs.pending, state => {
-        state.loading = true;
+      // Saved Jobs
+      .addCase(fetchSavedJobs.pending, state => {
+        state.savedJobsLoading = true;
         state.error = null;
       })
-      .addCase(searchJobs.fulfilled, (state, action) => {
-        state.loading = false;
-        if (action.payload.page === 1) {
-          state.jobs = action.payload.data;
-        } else {
-          state.jobs = [...state.jobs, ...action.payload.data];
-        }
-        state.pagination = {
-          page: action.payload.page,
-          totalPages: action.payload.totalPages,
-          total: action.payload.total,
-        };
+      .addCase(fetchSavedJobs.fulfilled, (state, action) => {
+        state.savedJobsLoading = false;
+        state.savedJobs = action.payload;
       })
-      .addCase(searchJobs.rejected, (state, action) => {
-        state.loading = false;
+      .addCase(fetchSavedJobs.rejected, (state, action) => {
+        state.savedJobsLoading = false;
         state.error = action.payload as string;
       })
-      .addCase(fetchSavedJobs.fulfilled, (state, action) => {
-        if (action.payload.page === 1) {
-          state.savedJobs = action.payload.data;
-        } else {
-          state.savedJobs = [...state.savedJobs, ...action.payload.data];
-        }
-      })
       .addCase(saveJob.fulfilled, (state, action) => {
-        state.savedJobs.push(action.payload);
+        // Job will be added on next fetch
       })
       .addCase(unsaveJob.fulfilled, (state, action) => {
         state.savedJobs = state.savedJobs.filter(
-          saved => saved.jobId !== action.payload,
+          job => (job as any)._id !== action.payload && job.id !== action.payload,
         );
       });
   },
 });
 
-export const {clearJobsError, setFilters, clearFilters} = jobsSlice.actions;
+export const {clearJobsError, setFilters, clearFilters, setAppliedJobIds, addAppliedJobId} = jobsSlice.actions;
 export default jobsSlice.reducer;

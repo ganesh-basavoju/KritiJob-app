@@ -21,6 +21,14 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({
   application,
   onPress,
 }) => {
+  const job = (application as any).jobId || application.job;
+  const company = (job as any)?.companyId || job?.company;
+  
+  if (!job) {
+    console.warn('ApplicationCard: No job data found', application);
+    return null;
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'accepted':
@@ -43,8 +51,8 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({
       activeOpacity={0.7}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={styles.title}>{application.job.title}</Text>
-          <Text style={styles.company}>{application.job.company.name}</Text>
+          <Text style={styles.title}>{job.title}</Text>
+          <Text style={styles.company}>{company?.name || 'Company'}</Text>
         </View>
         <View
           style={[
@@ -64,17 +72,17 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({
       <View style={styles.details}>
         <View style={styles.detailRow}>
           <Icon name="location-outline" size={16} color={colors.textSecondary} />
-          <Text style={styles.detailText}>{application.job.location}</Text>
+          <Text style={styles.detailText}>{job.location || 'N/A'}</Text>
         </View>
         <View style={styles.detailRow}>
           <Icon name="briefcase-outline" size={16} color={colors.textSecondary} />
-          <Text style={styles.detailText}>{application.job.type}</Text>
+          <Text style={styles.detailText}>{job.type || 'N/A'}</Text>
         </View>
       </View>
 
       <View style={styles.footer}>
         <Text style={styles.timeText}>
-          Applied {formatRelativeTime(application.appliedAt)}
+          Applied {formatRelativeTime((application as any).createdAt || application.appliedAt)}
         </Text>
       </View>
     </TouchableOpacity>

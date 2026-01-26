@@ -6,6 +6,17 @@ import axiosInstance from './axios';
 import {Job, JobFilters, PaginatedResponse, SavedJob} from '../types';
 
 export const jobsApi = {
+  async getJobFeed(
+    page: number = 1,
+    limit: number = 20,
+    filters?: JobFilters,
+  ): Promise<PaginatedResponse<Job>> {
+    const response = await axiosInstance.get('/jobs/feed', {
+      params: {page, limit, ...filters},
+    });
+    return response.data;
+  },
+
   async getJobs(
     page: number = 1,
     limit: number = 20,
@@ -50,5 +61,35 @@ export const jobsApi = {
 
   async deleteJob(id: string): Promise<void> {
     await axiosInstance.delete(`/jobs/${id}`);
+  },
+
+  async getSavedJobs(
+    page: number = 1,
+    limit: number = 100,
+  ): Promise<{data: Job[]}> {
+    const response = await axiosInstance.get('/candidate/saved-jobs', {
+      params: {page, limit},
+    });
+    return response.data;
+  },
+
+  async saveJob(jobId: string): Promise<void> {
+    await axiosInstance.post('/candidate/saved-jobs', {jobId});
+  },
+
+  async unsaveJob(jobId: string): Promise<void> {
+    await axiosInstance.delete(`/candidate/saved-jobs/${jobId}`);
+  },
+
+  async isJobSaved(jobId: string): Promise<boolean> {
+    try {
+      const response = await axiosInstance.get('/candidate/saved-jobs', {
+        params: {page: 1, limit: 100},
+      });
+      const savedJobs = response.data.data || [];
+      return savedJobs.some((job: Job) => (job as any)._id === jobId || job.id === jobId);
+    } catch {
+      return false;
+    }
   },
 };

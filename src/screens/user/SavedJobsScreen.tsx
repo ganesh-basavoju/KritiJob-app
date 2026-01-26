@@ -16,7 +16,7 @@ import {spacing} from '../../theme/spacing';
 
 export const SavedJobsScreen: React.FC<any> = ({navigation}) => {
   const dispatch = useDispatch<AppDispatch>();
-  const {savedJobs, loading} = useSelector((state: RootState) => state.jobs);
+  const {savedJobs, savedJobsLoading} = useSelector((state: RootState) => state.jobs);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -24,7 +24,7 @@ export const SavedJobsScreen: React.FC<any> = ({navigation}) => {
   }, []);
 
   const loadSavedJobs = async () => {
-    await dispatch(fetchSavedJobs(1));
+    await dispatch(fetchSavedJobs());
   };
 
   const handleRefresh = async () => {
@@ -33,7 +33,7 @@ export const SavedJobsScreen: React.FC<any> = ({navigation}) => {
     setRefreshing(false);
   };
 
-  if (loading && savedJobs.length === 0) {
+  if (savedJobsLoading && savedJobs.length === 0) {
     return <Loader />;
   }
 
@@ -43,13 +43,16 @@ export const SavedJobsScreen: React.FC<any> = ({navigation}) => {
         data={savedJobs}
         renderItem={({item}) => (
           <JobCard
-            job={item.job}
+            job={item}
             onPress={() =>
-              navigation.navigate('JobDetails', {jobId: item.job.id})
+              navigation.navigate('JobDetails', {jobId: (item as any)._id || item.id})
             }
           />
         )}
-        keyExtractor={item => item.id}
+        keyExtractor={(item, index) => {
+          const id = (item as any)._id || item.id;
+          return id ? `saved-job-${String(id)}-${index}` : `saved-fallback-${index}`;
+        }}
         contentContainerStyle={styles.list}
         refreshing={refreshing}
         onRefresh={handleRefresh}
