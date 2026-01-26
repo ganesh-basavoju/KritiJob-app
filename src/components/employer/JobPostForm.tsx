@@ -10,7 +10,9 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
+  Platform,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import {useForm, Controller} from 'react-hook-form';
 import {colors} from '../../theme/colors';
 import {spacing, borderRadius} from '../../theme/spacing';
@@ -39,6 +41,7 @@ export const JobPostForm: React.FC<JobPostFormProps> = ({
       experienceLevel: 'Entry Level',
       salaryRange: '',
       skillsRequired: '',
+      deadline: null,
     },
   });
 
@@ -48,6 +51,10 @@ export const JobPostForm: React.FC<JobPostFormProps> = ({
   const [selectedExperience, setSelectedExperience] = useState(
     initialData?.experienceLevel || 'Entry Level',
   );
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(
+    initialData?.deadline ? new Date(initialData.deadline) : null,
+  );
 
   useEffect(() => {
     setValue('type', selectedType);
@@ -56,6 +63,10 @@ export const JobPostForm: React.FC<JobPostFormProps> = ({
   useEffect(() => {
     setValue('experienceLevel', selectedExperience);
   }, [selectedExperience, setValue]);
+
+  useEffect(() => {
+    setValue('deadline', selectedDate);
+  }, [selectedDate, setValue]);
 
   const handleFormSubmit = (data: any) => {
     const formattedData = {
@@ -198,6 +209,63 @@ export const JobPostForm: React.FC<JobPostFormProps> = ({
         )}
       />
 
+      <Controller
+        control={control}
+        name="deadline"
+        rules={{
+          validate: (value) => {
+            if (value && new Date(value) < new Date(new Date().setHours(0, 0, 0, 0))) {
+              return 'Deadline cannot be in the past';
+            }
+            return true;
+          },
+        }}
+        render={({field: {value}, fieldState: {error}}) => (
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Application Deadline</Text>
+            <TouchableOpacity
+              style={[styles.datePickerButton, error && styles.inputError]}
+              onPress={() => setShowDatePicker(true)}>
+              <Text
+                style={[
+                  styles.datePickerText,
+                  !selectedDate && styles.datePickerPlaceholder,
+                ]}>
+                {selectedDate
+                  ? selectedDate.toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })
+                  : 'Select deadline (optional)'}
+              </Text>
+            </TouchableOpacity>
+            {selectedDate && (
+              <TouchableOpacity
+                style={styles.clearButton}
+                onPress={() => setSelectedDate(null)}>
+                <Text style={styles.clearButtonText}>Clear</Text>
+              </TouchableOpacity>
+            )}
+            {error && <Text style={styles.errorText}>{error.message}</Text>}
+            {showDatePicker && (
+              <DateTimePicker
+                value={selectedDate || new Date()}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                minimumDate={new Date()}
+                onChange={(event, date) => {
+                  setShowDatePicker(Platform.OS === 'ios');
+                  if (date) {
+                    setSelectedDate(date);
+                  }
+                }}
+              />
+            )}
+          </View>
+        )}
+      />
+
       <Button
         title={initialData ? 'Update Job' : 'Post Job'}
         onPress={handleSubmit(handleFormSubmit)}
@@ -268,5 +336,28 @@ const styles = StyleSheet.create({
   submitButton: {
     marginTop: spacing.md,
     marginBottom: spacing.xl,
+  },
+  datePickerButton: {
+    backgroundColor: colors.inputBackground,
+    borderWidth: 1,
+    borderColor: colors.inputBorder,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    justifyContent: 'center',
+  },
+  datePickerText: {
+    ...typography.body1,
+    color: colors.textPrimary,
+  },
+  datePickerPlaceholder: {
+    color: colors.inputPlaceholder,
+  },
+  clearButton: {
+    marginTop: spacing.sm,
+    alignSelf: 'flex-start',
+  },
+  clearButtonText: {
+    ...typography.body2,
+    color: colors.yellow,
   },
 });
