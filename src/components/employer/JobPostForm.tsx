@@ -1,5 +1,6 @@
+
 // ============================================
-// JOB POST FORM COMPONENT (Updated)
+// JOB POST FORM COMPONENT (Fixed)
 // ============================================
 
 import React, {useState, useEffect} from 'react';
@@ -26,17 +27,17 @@ import {storageService} from '../../services/storage.service';
 interface JobPostFormProps {
   onSubmit: (data: any) => void;
   loading: boolean;
-  initialData?: any; // Populated by parent for Edit Mode
+  initialValues?: any; 
 }
 
 export const JobPostForm: React.FC<JobPostFormProps> = ({
   onSubmit,
   loading,
-  initialData,
+  initialValues,
 }) => {
   const {control, handleSubmit, setValue, reset} = useForm({
-    defaultValues: initialData || {
-      companyName: '', // Added to default values
+    defaultValues: initialValues || {
+      companyName: '', 
       title: '',
       description: '',
       location: '',
@@ -48,23 +49,22 @@ export const JobPostForm: React.FC<JobPostFormProps> = ({
     },
   });
 
-  // Local State for UI Chips (since visual selection depends on state, not just form value)
+  // Local State for UI Chips
   const [selectedType, setSelectedType] = useState(
-    initialData?.type || 'Full-Time',
+    initialValues?.type || 'Full-Time',
   );
   const [selectedExperience, setSelectedExperience] = useState(
-    initialData?.experienceLevel || 'Entry Level',
+    initialValues?.experienceLevel || 'Entry Level',
   );
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(
-    initialData?.deadline ? new Date(initialData.deadline) : null,
+    initialValues?.deadline ? new Date(initialValues.deadline) : null,
   );
 
-  // Fetch Company Name on mount (if not provided in initialData)
+  // Fetch Company Name on mount
   useEffect(() => {
     const fetchCompanyData = async () => {
-      // If we are editing and initialData already has the name, skip fetch
-      if (initialData?.companyName) return;
+      if (initialValues?.companyName) return;
 
       try {
         const token = await storageService.getAccessToken();
@@ -90,20 +90,20 @@ export const JobPostForm: React.FC<JobPostFormProps> = ({
     };
 
     fetchCompanyData();
-  }, [initialData, setValue]);
+  }, [initialValues, setValue]);
 
   // CRITICAL: Sync form and local UI state when initialData is received (Edit Mode)
   useEffect(() => {
-    if (initialData) {
+    if (initialValues) {
       // 1. Reset the entire form with new data
-      reset(initialData);
+      reset(initialValues);
       
       // 2. Update local UI state for the chips to highlight correctly
-      if (initialData.type) setSelectedType(initialData.type);
-      if (initialData.experienceLevel) setSelectedExperience(initialData.experienceLevel);
-      if (initialData.deadline) setSelectedDate(new Date(initialData.deadline));
+      if (initialValues.type) setSelectedType(initialValues.type);
+      if (initialValues.experienceLevel) setSelectedExperience(initialValues.experienceLevel);
+      if (initialValues.deadline) setSelectedDate(new Date(initialValues.deadline));
     }
-  }, [initialData, reset]);
+  }, [initialValues, reset]);
 
   // Sync Form Values when Local State changes (User Interaction)
   useEffect(() => {
@@ -118,22 +118,15 @@ export const JobPostForm: React.FC<JobPostFormProps> = ({
     setValue('deadline', selectedDate);
   }, [selectedDate, setValue]);
 
+  // FIXED: Pass raw form data to parent, do not convert here
   const handleFormSubmit = (data: any) => {
-    const formattedData = {
-      ...data,
-      // Convert comma-separated string back to array for API
-      skillsRequired: data.skillsRequired
-        .split(',')
-        .map((skill: string) => skill.trim())
-        .filter(Boolean),
-    };
-    onSubmit(formattedData);
+    onSubmit(data);
   };
 
   return (
     <ScrollView style={styles.container}>
       
-      {/* NEW: Company Name Field (Read-Only) */}
+      {/* Company Name Field (Read-Only) */}
       <Controller
         control={control}
         name="companyName"
@@ -145,7 +138,7 @@ export const JobPostForm: React.FC<JobPostFormProps> = ({
             value={value}
             onChangeText={onChange}
             error={error?.message}
-            editable={false} // Prevents user from changing the name
+            editable={false} 
             style={{ backgroundColor: colors.backgroundTertiary }}
           />
         )}
@@ -337,7 +330,7 @@ export const JobPostForm: React.FC<JobPostFormProps> = ({
       />
 
       <Button
-        title={initialData ? 'Update Job' : 'Post Job'}
+        title={initialValues ? 'Update Job' : 'Post Job'}
         onPress={handleSubmit(handleFormSubmit)}
         loading={loading}
         style={styles.submitButton}

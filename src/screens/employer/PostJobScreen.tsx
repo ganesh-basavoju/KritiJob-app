@@ -1,40 +1,38 @@
 
 // ============================================
-// POST JOB SCREEN (Updated for Edit Mode)
+// POST JOB SCREEN (Fixed to match Slice Signature)
 // ============================================
 
 import React, {useState, useEffect} from 'react';
 import {StyleSheet, Alert} from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import axios from 'axios'; // Add axios import
-import {createJob, updateJob} from '../../redux/slices/employerSlice';
+import axios from 'axios';
+import {createJob, updateJob, fetchMyJobs} from '../../redux/slices/employerSlice';
 import {fetchMyCompany} from '../../redux/slices/companiesSlice';
 import {AppDispatch, RootState} from '../../redux/store';
 import {JobPostForm} from '../../components/employer/JobPostForm';
 import {Loader} from '../../components/common/Loader';
 import {colors} from '../../theme/colors';
-import {API_BASE_URL} from '../../utils/constants'; // This is just a string
+import {API_BASE_URL} from '../../utils/constants';
 
 export const PostJobScreen: React.FC<any> = ({navigation, route}) => {
   const dispatch = useDispatch<AppDispatch>();
-  const {loading} = useSelector((state: RootState) => state.employer);
-  const {loading: companyLoading} = useSelector(
+  
+  const {loading: jobLoading} = useSelector((state: RootState) => state.employer);
+  const {myCompany, loading: companyLoading} = useSelector(
     (state: RootState) => state.companies,
   );
 
-  // Check if we are in Edit Mode
   const isEditing = !!route.params?.jobId;
   const jobId = route.params?.jobId;
 
-  // State to hold job details for editing
   const [initialValues, setInitialValues] = useState<any>(null);
   const [fetchingJob, setFetchingJob] = useState(isEditing);
 
   useEffect(() => {
     dispatch(fetchMyCompany());
 
-    // If we have a jobId, fetch the details to populate the form
     if (isEditing && jobId) {
       fetchJobDetails(jobId);
     }
@@ -42,19 +40,19 @@ export const PostJobScreen: React.FC<any> = ({navigation, route}) => {
 
   const fetchJobDetails = async (id: string) => {
     try {
-      // FIXED: Use axios.get with template literal
       const response = await axios.get(`${API_BASE_URL}/jobs/${id}`);
       const jobData = response.data.data;
 
-      // Format skills array to comma-separated string for the input
-      const formattedData = {
-        ...jobData,
-        skills: jobData.skillsRequired ? jobData.skillsRequired.join(', ') : '',
-      };
-      
-      setInitialValues(formattedData);
+      if (jobData) {
+        // Map API data to form (Array -> String)
+        const formattedData = {
+          ...jobData,
+          skillsRequired: jobData.skillsRequired ? jobData.skillsRequired.join(', ') : '',
+        };
+        setInitialValues(formattedData);
+      }
     } catch (error) {
-      console.error('Error fetching job:', error);
+      console.error('Error fetching job details:', error);
       Alert.alert('Error', 'Failed to load job details.');
       navigation.goBack();
     } finally {
@@ -63,19 +61,45 @@ export const PostJobScreen: React.FC<any> = ({navigation, route}) => {
   };
 
   const handleSubmit = async (data: any) => {
-    // Prepare payload: Convert skills string back to array
+    // 1. Get Company ID
+    const companyId = myCompany?.id || myCompany?._id;
+    
+    if (!isEditing && !companyId) {
+      Alert.alert('Missing Info', 'Company profile not found. Please complete your profile first.');
+      return;
+    }
+
+    // 2. Prepare Payload matching API spec
+    // Remove fields not in API body spec (companyName, deadline)
     const payload = {
-      ...data,
-      skillsRequired: data.skills
-        ? data.skills.split(',').map((s: string) => s.trim()).filter((s: string) => s)
+      title: data.title,
+      description: data.description,
+      location: data.location,
+      type: data.type,
+      experienceLevel: data.experienceLevel,
+      salaryRange: data.salaryRange,
+      skillsRequired: data.skillsRequired
+        ? String(data.skillsRequired).split(',').map((s: string) => s.trim()).filter((s: string) => s)
         : [],
     };
 
+    // Attach companyId ONLY for Create (POST)
+    if (!isEditing) {
+      payload.companyId = companyId;
+    }
+
     let result;
-    
+
     if (isEditing) {
-      result = await dispatch(updateJob({id: jobId, ...payload} as any));
+      // -------------------------------------------------------------
+      // FIX: MATCH SLICE SIGNATURE: { id: string, jobData: any }
+      // -------------------------------------------------------------
+      result = await dispatch(updateJob({
+        id: jobId,
+        jobData: payload
+      }));
     } else {
+      // Create expects (jobData: any) directly
       result = await dispatch(createJob(payload));
     }
 
@@ -83,13 +107,19 @@ export const PostJobScreen: React.FC<any> = ({navigation, route}) => {
       (isEditing && updateJob.fulfilled.match(result)) ||
       (!isEditing && createJob.fulfilled.match(result))
     ) {
+      // Refresh list
+      await dispatch(fetchMyJobs(1)); 
+
       Alert.alert(
         'Success',
         isEditing ? 'Job updated successfully!' : 'Job posted successfully!',
       );
       navigation.goBack();
     } else {
-      Alert.alert('Error', isEditing ? 'Failed to update job' : 'Failed to post job');
+      // Handle Error
+      const errorMessage = result?.error?.message || 
+                         (isEditing ? 'Failed to update job' : 'Failed to post job');
+      Alert.alert('Error', errorMessage);
     }
   };
 
@@ -102,8 +132,7 @@ export const PostJobScreen: React.FC<any> = ({navigation, route}) => {
       <JobPostForm
         initialValues={initialValues}
         onSubmit={handleSubmit}
-        loading={loading}
-        isEditing={isEditing}
+        loading={jobLoading}
       />
     </SafeAreaView>
   );
