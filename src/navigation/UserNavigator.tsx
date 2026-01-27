@@ -101,6 +101,21 @@ const CompaniesStack = () => (
   </Stack.Navigator>
 );
 
+const NotificationsStack = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerStyle: {backgroundColor: colors.background},
+      headerTintColor: colors.textPrimary,
+      headerTitleStyle: typography.h5,
+    }}>
+    <Stack.Screen
+      name="NotificationsList"
+      component={NotificationsScreen}
+      options={{title: 'Notifications'}}
+    />
+  </Stack.Navigator>
+);
+
 const ProfileStack = () => (
   <Stack.Navigator
     screenOptions={{
@@ -112,11 +127,6 @@ const ProfileStack = () => (
       name="UserProfile"
       component={UserProfileScreen}
       options={{title: 'Profile'}}
-    />
-    <Stack.Screen
-      name="Notifications"
-      component={NotificationsScreen}
-      options={{title: 'Notifications'}}
     />
   </Stack.Navigator>
 );
@@ -169,6 +179,20 @@ export const UserNavigator: React.FC = () => {
           tabBarIcon: ({color, focused}) => (
             <Icon
               name={focused ? 'document-text' : 'document-text-outline'}
+              size={24}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Notifications"
+        component={NotificationsStack}
+        options={{
+          tabBarLabel: 'Notifications',
+          tabBarIcon: ({color, focused}) => (
+            <Icon
+              name={focused ? 'notifications' : 'notifications-outline'}
               size={24}
               color={color}
             />
