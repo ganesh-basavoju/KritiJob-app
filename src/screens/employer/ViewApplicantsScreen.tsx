@@ -2,7 +2,7 @@
 // VIEW APPLICANTS SCREEN (With Application Count Fix)
 // ============================================
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useMemo} from 'react';
 import {
   View,
   StyleSheet,
@@ -47,6 +47,19 @@ export const ViewApplicantsScreen: React.FC<Props> = ({navigation}) => {
   
   // NEW: State to hold the calculated counts { jobId: count }
   const [applicationCounts, setApplicationCounts] = useState<Record<string, number>>({});
+
+  // Deduplicate jobs to prevent duplicate key errors
+  const uniqueJobs = useMemo(() => {
+    const jobsArray = Array.isArray(jobs) ? jobs : [];
+    const seen = new Set<string>();
+    return jobsArray.filter(job => {
+      if (!job._id || seen.has(job._id)) {
+        return false;
+      }
+      seen.add(job._id);
+      return true;
+    });
+  }, [jobs]);
 
   useEffect(() => {
     loadJobs();
@@ -152,6 +165,10 @@ export const ViewApplicantsScreen: React.FC<Props> = ({navigation}) => {
             <Text style={styles.detailText}>{item.type}</Text>
           </View>
           <View style={styles.detailRow}>
+            <Icon name="cash-outline" size={16} color={colors.textSecondary} />
+            <Text style={styles.detailText}>{item.salaryRange}</Text>
+          </View>
+          <View style={styles.detailRow}>
             <Icon name="people-outline" size={16} color={colors.textSecondary} />
             <Text style={styles.detailText}>
               {/* UPDATED: Use calculated count */}
@@ -163,16 +180,16 @@ export const ViewApplicantsScreen: React.FC<Props> = ({navigation}) => {
     );
   };
 
-  if (loading && jobs.length === 0) {
+  if (loading && uniqueJobs.length === 0) {
     return <Loader />;
   }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <FlatList
-        data={jobs}
+        data={uniqueJobs}
         renderItem={renderJobItem}
-        keyExtractor={item => item._id}
+        keyExtractor={(item, index) => item._id ? `job-${item._id}` : `job-idx-${index}`}
         contentContainerStyle={styles.list}
         refreshing={refreshing}
         onRefresh={handleRefresh}

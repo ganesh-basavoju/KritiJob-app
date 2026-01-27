@@ -6,7 +6,7 @@ import React, {useEffect, useState} from 'react';
 import {View, StyleSheet, FlatList} from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {fetchSavedJobs} from '../../redux/slices/jobsSlice';
+import {getSavedJobs} from '../../redux/slices/candidateSlice';
 import {AppDispatch, RootState} from '../../redux/store';
 import {JobCard} from '../../components/jobs/JobCard';
 import {Loader} from '../../components/common/Loader';
@@ -16,15 +16,16 @@ import {spacing} from '../../theme/spacing';
 
 export const SavedJobsScreen: React.FC<any> = ({navigation}) => {
   const dispatch = useDispatch<AppDispatch>();
-  const {savedJobs, savedJobsLoading} = useSelector((state: RootState) => state.jobs);
+  const {profile, loading} = useSelector((state: RootState) => state.candidate);
   const [refreshing, setRefreshing] = useState(false);
+  const savedJobs = profile?.savedJobs || [];
 
   useEffect(() => {
     loadSavedJobs();
   }, []);
 
   const loadSavedJobs = async () => {
-    await dispatch(fetchSavedJobs());
+    await dispatch(getSavedJobs());
   };
 
   const handleRefresh = async () => {
@@ -33,7 +34,7 @@ export const SavedJobsScreen: React.FC<any> = ({navigation}) => {
     setRefreshing(false);
   };
 
-  if (savedJobsLoading && savedJobs.length === 0) {
+  if (loading && savedJobs.length === 0) {
     return <Loader />;
   }
 

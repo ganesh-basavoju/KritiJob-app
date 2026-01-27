@@ -58,7 +58,7 @@ yarn-error.log
 # Bundle artifact
 *.jsbundle
 
-# Firebase config files (add your own from Firebase Console)
+# Firebase config files
 android/app/google-services.json
 ios/GoogleService-Info.plist
 

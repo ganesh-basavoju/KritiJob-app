@@ -7,55 +7,13 @@ import {UserProfile} from '../types';
 
 export const userApi = {
   async getProfile(): Promise<UserProfile> {
-    const response = await axiosInstance.get('/candidate/profile');
+    const response = await axiosInstance.get('/users/me');
     return response.data.data;
   },
 
   async updateProfile(data: Partial<UserProfile>): Promise<UserProfile> {
-    const response = await axiosInstance.put('/candidate/profile', data);
+    const response = await axiosInstance.put('/users/me', data);
     return response.data.data;
-  },
-
-  async uploadResume(formData: FormData): Promise<{url: string; name: string}> {
-    const response = await axiosInstance.post('/candidate/resume', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data.data;
-  },
-
-  async deleteResume(resumeId: string): Promise<void> {
-    await axiosInstance.delete(`/candidate/resume/${resumeId}`);
-  },
-
-  async uploadAvatar(formData: FormData): Promise<string> {
-    console.log('API: Uploading avatar to /candidate/avatar');
-    const response = await axiosInstance.post('/candidate/avatar', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    console.log('API: Avatar upload response:', response.data);
-    return response.data.data;
-  },
-
-  async getSavedJobs(
-    page: number = 1,
-    limit: number = 20,
-  ): Promise<PaginatedResponse<any>> {
-    const response = await axiosInstance.get('/candidate/saved-jobs', {
-      params: {page, limit},
-    });
-    return response.data;
-  },
-
-  async saveJob(jobId: string): Promise<void> {
-    await axiosInstance.post('/candidate/saved-jobs', {jobId});
-  },
-
-  async removeSavedJob(jobId: string): Promise<void> {
-    await axiosInstance.delete(`/candidate/saved-jobs/${jobId}`);
   },
 
   async deleteAccount(): Promise<void> {

@@ -56,23 +56,27 @@ export const NotificationsScreen: React.FC<any> = () => {
     await dispatch(deleteNotification(id));
   };
 
-  const renderNotification = ({item}: {item: Notification}) => (
-    <TouchableOpacity
-      style={[styles.card, !item.read && styles.unreadCard]}
-      onPress={() => handleMarkAsRead(item.id)}
-      activeOpacity={0.7}>
-      <View style={styles.cardContent}>
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.body}>{item.body}</Text>
-        <Text style={styles.time}>{formatRelativeTime(item.createdAt)}</Text>
-      </View>
+  const renderNotification = ({item}: {item: Notification}) => {
+    const notificationId = (item as any)._id || item.id;
+    
+    return (
       <TouchableOpacity
-        style={styles.deleteButton}
-        onPress={() => handleDelete(item.id)}>
-        <Icon name="close-circle" size={24} color={colors.error} />
+        style={[styles.card, !item.read && styles.unreadCard]}
+        onPress={() => handleMarkAsRead(notificationId)}
+        activeOpacity={0.7}>
+        <View style={styles.cardContent}>
+          <Text style={styles.title}>{item.title}</Text>
+          <Text style={styles.body}>{item.body}</Text>
+          <Text style={styles.time}>{formatRelativeTime(item.createdAt)}</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => handleDelete(notificationId)}>
+          <Icon name="close-circle" size={24} color={colors.error} />
+        </TouchableOpacity>
       </TouchableOpacity>
-    </TouchableOpacity>
-  );
+    );
+  };
 
   const renderHeader = () => (
     <View style={styles.header}>
@@ -96,7 +100,10 @@ export const NotificationsScreen: React.FC<any> = () => {
       <FlatList
         data={notifications}
         renderItem={renderNotification}
-        keyExtractor={item => item.id}
+        keyExtractor={(item, index) => {
+          const id = (item as any)._id || item.id;
+          return id ? `notification-${id}` : `notification-idx-${index}`;
+        }}
         ListHeaderComponent={renderHeader}
         contentContainerStyle={styles.list}
         refreshing={refreshing}

@@ -9,7 +9,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {fetchJobById, saveJob, unsaveJob, addAppliedJobId} from '../../redux/slices/jobsSlice';
 import {applyForJob} from '../../redux/slices/applicationsSlice';
-import {fetchUserProfile} from '../../redux/slices/userSlice';
+import {fetchCandidateProfile} from '../../redux/slices/candidateSlice';
 import {AppDispatch, RootState} from '../../redux/store';
 import {Button} from '../../components/common/Button';
 import {Loader} from '../../components/common/Loader';
@@ -40,7 +40,7 @@ export const JobDetailsScreen: React.FC<any> = ({navigation, route}) => {
   const dispatch = useDispatch<AppDispatch>();
   const {currentJob, currentJobLoading} = useSelector((state: RootState) => state.jobs);
   const {loading: applyLoading} = useSelector((state: RootState) => state.applications);
-  const {profile} = useSelector((state: RootState) => state.user);
+  const {profile} = useSelector((state: RootState) => state.candidate);
   const [isSaved, setIsSaved] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
 
@@ -49,7 +49,7 @@ export const JobDetailsScreen: React.FC<any> = ({navigation, route}) => {
       await loadJobDetails();
       await checkSavedStatus();
       await checkApplicationStatus();
-      await dispatch(fetchUserProfile());
+      await dispatch(fetchCandidateProfile());
     };
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
