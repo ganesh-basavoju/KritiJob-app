@@ -56,6 +56,10 @@ export const storageService = {
     return await AsyncStorage.getItem(KEYS.FCM_TOKEN);
   },
 
+  async removeFCMToken(): Promise<void> {
+    await AsyncStorage.removeItem(KEYS.FCM_TOKEN);
+  },
+
   // Onboarding
   async setOnboardingComplete(): Promise<void> {
     await AsyncStorage.setItem(KEYS.ONBOARDING_COMPLETE, 'true');

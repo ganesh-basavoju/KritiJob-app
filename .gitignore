@@ -58,6 +58,10 @@ yarn-error.log
 # Bundle artifact
 *.jsbundle
 
+# Firebase config files (add your own from Firebase Console)
+android/app/google-services.json
+ios/GoogleService-Info.plist
+
 # Ruby / CocoaPods
 **/Pods/
 /vendor/bundle/
