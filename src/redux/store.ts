@@ -5,6 +5,7 @@
 import {configureStore} from '@reduxjs/toolkit';
 import authReducer from './slices/authSlice';
 import userReducer from './slices/userSlice';
+import candidateReducer from './slices/candidateSlice';
 import jobsReducer from './slices/jobsSlice';
 import applicationsReducer from './slices/applicationsSlice';
 import employerReducer from './slices/employerSlice';
@@ -15,6 +16,7 @@ export const store = configureStore({
   reducer: {
     auth: authReducer,
     user: userReducer,
+    candidate: candidateReducer,
     jobs: jobsReducer,
     applications: applicationsReducer,
     employer: employerReducer,

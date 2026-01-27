@@ -16,6 +16,7 @@ import {ApplicantDetailsScreen} from '../screens/employer/ApplicantDetailsScreen
 import {NotificationsScreen} from '../screens/notifications/NotificationsScreen';
 import {MoreScreen} from '../screens/employer/MoreScreen';
 import {EmployerProfileScreen} from '../screens/employer/EmployerProfileScreen';
+import {CandidateProfileScreen} from '../screens/employer/CandidateProfileScreen';
 
 // NEW IMPORTS
 import {ViewApplicantsScreen} from '../screens/employer/ViewApplicantsScreen';
@@ -51,6 +52,11 @@ const DashboardStack = () => (
       name="JobApplicantsList"
       component={JobApplicantsListScreen}
       options={{title: 'Applicants'}}
+    />
+    <Stack.Screen
+      name="CandidateProfile"
+      component={CandidateProfileScreen}
+      options={{title: 'Candidate Profile'}}
     />
     {/* END NEW SCREENS */}
 

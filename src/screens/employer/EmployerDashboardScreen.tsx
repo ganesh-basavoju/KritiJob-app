@@ -7,6 +7,7 @@ import {View, Text, StyleSheet, ScrollView, TouchableOpacity} from 'react-native
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useDispatch, useSelector} from 'react-redux';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {useFocusEffect} from '@react-navigation/native';
 import {fetchEmployerStats} from '../../redux/slices/employerSlice';
 import {AppDispatch, RootState} from '../../redux/store';
 import {companiesApi} from '../../api/companies.api';
@@ -21,11 +22,7 @@ export const EmployerDashboardScreen: React.FC<any> = ({navigation}) => {
   const {stats, loading} = useSelector((state: RootState) => state.employer);
   const [company, setCompany] = React.useState<Company | null>(null);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = React.useCallback(async () => {
     await dispatch(fetchEmployerStats());
     try {
       const companyData = await companiesApi.getMyCompany();
@@ -33,7 +30,13 @@ export const EmployerDashboardScreen: React.FC<any> = ({navigation}) => {
     } catch (error) {
       console.log('Error fetching company:', error);
     }
-  };
+  }, [dispatch]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
 
   if (loading && !stats) {
     return <Loader />;

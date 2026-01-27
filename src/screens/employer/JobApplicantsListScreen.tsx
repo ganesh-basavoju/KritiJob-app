@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  Linking, // 1. Import Linking
+  Modal,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -16,6 +16,14 @@ import {applicationsApi, Application} from '../../api/applications.api';
 import {colors} from '../../theme/colors';
 import {spacing, borderRadius, shadows} from '../../theme/spacing';
 import {typography} from '../../theme/typography';
+
+const APPLICATION_STATUSES = [
+  'Applied',
+  'Reviewing',
+  'Interviewing',
+  'Selected',
+  'Rejected',
+];
 
 interface Props {
   route: any;
@@ -26,6 +34,9 @@ export const JobApplicantsListScreen: React.FC<Props> = ({route, navigation}) =>
   const {jobId, jobTitle} = route.params;
   const [applicants, setApplicants] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
+  const [statusModalVisible, setStatusModalVisible] = useState(false);
+  const [selectedApplicant, setSelectedApplicant] = useState<Application | null>(null);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   useEffect(() => {
     navigation.setOptions({
@@ -47,12 +58,59 @@ export const JobApplicantsListScreen: React.FC<Props> = ({route, navigation}) =>
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Selected': return colors.success;
-      case 'Rejected': return colors.error;
-      case 'Interviewing': return colors.info;
-      case 'Reviewing': return colors.warning;
-      default: return colors.textSecondary;
+      case 'Selected': return '#10B981';
+      case 'Rejected': return '#EF4444';
+      case 'Interviewing': return '#3B82F6';
+      case 'Reviewing': return '#F59E0B';
+      default: return '#6B7280';
     }
+  };
+
+  const handleStatusChange = (applicant: Application) => {
+    setSelectedApplicant(applicant);
+    setStatusModalVisible(true);
+  };
+
+  const updateStatus = async (newStatus: string) => {
+    if (!selectedApplicant) return;
+    
+    setUpdatingStatus(true);
+    try {
+      await applicationsApi.updateApplicationStatus(selectedApplicant._id, newStatus);
+      
+      // Update local state
+      setApplicants(prev =>
+        prev.map(app =>
+          app._id === selectedApplicant._id ? {...app, status: newStatus} : app
+        )
+      );
+      
+      Alert.alert('Success', `Status updated to ${newStatus}`);
+      setStatusModalVisible(false);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update status');
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
+  const viewCandidateProfile = (candidateId: any) => {
+    let id;
+    if (typeof candidateId === 'object') {
+      // Try both _id and id fields
+      id = candidateId._id || candidateId.id;
+    } else {
+      id = candidateId;
+    }
+    
+    console.log('Navigating to candidate profile with ID:', id, 'Original candidateId:', candidateId);
+    
+    if (!id) {
+      Alert.alert('Error', 'Unable to view candidate profile - ID not found');
+      return;
+    }
+    
+    navigation.navigate('CandidateProfile', {candidateId: id});
   };
 
   const renderApplicantCard = ({item}: {item: Application}) => {
@@ -65,28 +123,6 @@ export const JobApplicantsListScreen: React.FC<Props> = ({route, navigation}) =>
       : 'No email';
       
     const appliedDate = new Date(item.createdAt).toLocaleDateString();
-
-    // 2. Define the handler
-    const handleViewDetails = () => {
-      // OPTION A: Navigate to the Details Screen (Recommended)
-      // Ensure 'ApplicantDetails' matches the name in your EmployerNavigator stack
-      navigation.navigate('ApplicantDetails', {
-        applicationId: item._id,
-        // Pass the whole application object if the screen needs data immediately
-        application: item,
-      });
-
-      // OPTION B: Open Resume URL directly (Uncomment below to use this instead)
-      /*
-      if (item.resumeUrl) {
-        Linking.openURL(item.resumeUrl).catch(err => {
-          Alert.alert('Error', 'Could not open the resume URL');
-        });
-      } else {
-        Alert.alert('No Resume', 'This applicant has not uploaded a resume yet.');
-      }
-      */
-    };
 
     return (
       <View style={styles.card}>
@@ -103,11 +139,20 @@ export const JobApplicantsListScreen: React.FC<Props> = ({route, navigation}) =>
              </View>
           </View>
           
-          <View style={[styles.statusBadge, {backgroundColor: getStatusColor(item.status) + '20'}]}>
+          <TouchableOpacity
+            style={[
+              styles.statusBadge, 
+              {
+                backgroundColor: getStatusColor(item.status) + '15',
+                borderColor: getStatusColor(item.status) + '50'
+              }
+            ]}
+            onPress={() => handleStatusChange(item)}>
             <Text style={[styles.statusText, {color: getStatusColor(item.status)}]}>
               {item.status}
             </Text>
-          </View>
+            <Icon name="chevron-down" size={10} color={getStatusColor(item.status)} style={{marginLeft: 4}} />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.cardBody}>
@@ -117,13 +162,17 @@ export const JobApplicantsListScreen: React.FC<Props> = ({route, navigation}) =>
           </View>
         </View>
 
-        <TouchableOpacity 
-          style={styles.actionButton}
-          onPress={handleViewDetails} // 3. Attach the handler
-          activeOpacity={0.7}>
-          <Text style={styles.actionButtonText}>View Resume / Details</Text>
-          <Icon name="chevron-forward" size={18} color={colors.primary} />
-        </TouchableOpacity>
+        <View style={styles.actionsRow}>
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={() => viewCandidateProfile(item.candidateId)}
+            activeOpacity={0.8}>
+            <Icon name="person-outline" size={18} color="#FFFFFF" />
+            <Text style={styles.actionButtonText}>View Profile</Text>
+          </TouchableOpacity>
+
+          
+        </View>
       </View>
     );
   };
@@ -152,6 +201,50 @@ export const JobApplicantsListScreen: React.FC<Props> = ({route, navigation}) =>
           </View>
         }
       />
+
+      {/* Status Change Modal */}
+      <Modal
+        visible={statusModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setStatusModalVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Change Application Status</Text>
+              <TouchableOpacity onPress={() => setStatusModalVisible(false)}>
+                <Icon name="close" size={24} color={colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+            
+            {APPLICATION_STATUSES.map(status => (
+              <TouchableOpacity
+                key={status}
+                style={[
+                  styles.statusOption,
+                  selectedApplicant?.status === status && styles.statusOptionActive,
+                ]}
+                onPress={() => updateStatus(status)}
+                disabled={updatingStatus}>
+                <View style={[styles.statusDot, {backgroundColor: getStatusColor(status)}]} />
+                <Text style={[
+                  styles.statusOptionText,
+                  selectedApplicant?.status === status && styles.statusOptionTextActive,
+                ]}>
+                  {status}
+                </Text>
+                {selectedApplicant?.status === status && (
+                  <Icon name="checkmark" size={20} color={colors.primary} />
+                )}
+              </TouchableOpacity>
+            ))}
+            
+            {updatingStatus && (
+              <ActivityIndicator size="small" color={colors.primary} style={{marginTop: spacing.md}} />
+            )}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -173,57 +266,69 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.card,
-    borderRadius: borderRadius.md,
-    padding: spacing.md,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
     marginBottom: spacing.md,
-    ...shadows.sm,
+    ...shadows.md,
+    borderWidth: 1,
+    borderColor: colors.border + '40',
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: spacing.md,
+    paddingBottom: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border + '30',
   },
   candidateInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-  },
-  avatarPlaceholder: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.primaryLight,
-    justifyContent: 'center',
-    alignItems: 'center',
     marginRight: spacing.sm,
   },
+  avatarPlaceholder: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.md,
+  },
   avatarText: {
-    ...typography.h6,
-    color: colors.primary,
+    ...typography.h5,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
   },
   nameContainer: {
     flex: 1,
   },
   candidateName: {
-    ...typography.body1,
+    ...typography.h6,
     color: colors.textPrimary,
-    fontWeight: '600',
+    fontWeight: 'bold',
+    marginBottom: 2,
   },
   candidateEmail: {
-    ...typography.caption,
+    ...typography.body2,
     color: colors.textSecondary,
   },
   statusBadge: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
   },
   statusText: {
     ...typography.caption,
     fontWeight: '700',
     textTransform: 'uppercase',
     fontSize: 10,
+    letterSpacing: 0.5,
   },
   cardBody: {
     marginBottom: spacing.md,
@@ -231,26 +336,34 @@ const styles = StyleSheet.create({
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: spacing.xs,
   },
   metaText: {
-    ...typography.caption,
+    ...typography.body2,
     color: colors.textSecondary,
-    marginLeft: spacing.xs,
+    marginLeft: spacing.sm,
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginTop: spacing.xs,
   },
   actionButton: {
+    flex: 1,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    marginTop: spacing.xs,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.buttonSecondary,
+    borderRadius: borderRadius.md,
+    ...shadows.sm,
   },
+  
   actionButtonText: {
-    ...typography.body2,
-    color: colors.primary,
-    fontWeight: '600',
-    marginRight: spacing.xs,
+    ...typography.button,
+    color: '#FFFFFF',
+    fontWeight: '700',
+    marginLeft: spacing.sm,
   },
   emptyContainer: {
     flex: 1,
@@ -262,5 +375,54 @@ const styles = StyleSheet.create({
     ...typography.body1,
     color: colors.textTertiary,
     marginTop: spacing.sm,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: colors.card,
+    borderTopLeftRadius: borderRadius.lg,
+    borderTopRightRadius: borderRadius.lg,
+    padding: spacing.lg,
+    maxHeight: '70%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  modalTitle: {
+    ...typography.h6,
+    color: colors.textPrimary,
+    fontWeight: 'bold',
+  },
+  statusOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.sm,
+    marginBottom: spacing.xs,
+  },
+  statusOptionActive: {
+    backgroundColor: colors.primaryLight,
+  },
+  statusDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginRight: spacing.sm,
+  },
+  statusOptionText: {
+    ...typography.body1,
+    color: colors.textPrimary,
+    flex: 1,
+  },
+  statusOptionTextActive: {
+    fontWeight: '600',
+    color: colors.primary,
   },
 });

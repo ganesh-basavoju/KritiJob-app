@@ -9,7 +9,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {launchImageLibrary} from 'react-native-image-picker';
 import * as DocumentPicker from '@react-native-documents/picker';
-import {fetchUserProfile, updateUserProfile, uploadAvatar, uploadResume, deleteResume} from '../../redux/slices/userSlice';
+import {fetchCandidateProfile, updateCandidateProfile, uploadAvatar, uploadResume, deleteResume} from '../../redux/slices/candidateSlice';
 import {logout} from '../../redux/slices/authSlice';
 import {AppDispatch, RootState} from '../../redux/store';
 import {Button} from '../../components/common/Button';
@@ -20,7 +20,7 @@ import {typography} from '../../theme/typography';
 
 export const UserProfileScreen: React.FC<any> = ({navigation}) => {
   const dispatch = useDispatch<AppDispatch>();
-  const {profile, loading} = useSelector((state: RootState) => state.user);
+  const {profile, loading} = useSelector((state: RootState) => state.candidate);
   const {user} = useSelector((state: RootState) => state.auth);
 
   const [isEditingAbout, setIsEditingAbout] = useState(false);
@@ -49,7 +49,7 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
   }, [profile]);
 
   const loadProfile = async () => {
-    await dispatch(fetchUserProfile());
+    await dispatch(fetchCandidateProfile());
   };
 
   const handleLogout = async () => {
@@ -98,7 +98,7 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
 
   const handleSaveAbout = async () => {
     try {
-      await dispatch(updateUserProfile({ about: editedAbout })).unwrap();
+      await dispatch(updateCandidateProfile({ about: editedAbout })).unwrap();
       setIsEditingAbout(false);
       Alert.alert('Success', 'About section updated');
     } catch (error: any) {
@@ -109,7 +109,7 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
   const handleSaveSkills = async () => {
     try {
       const skillsArray = editedSkills.split(',').map(s => s.trim()).filter(s => s.length > 0);
-      await dispatch(updateUserProfile({ skills: skillsArray })).unwrap();
+      await dispatch(updateCandidateProfile({ skills: skillsArray })).unwrap();
       setIsEditingSkills(false);
       Alert.alert('Success', 'Skills updated');
     } catch (error: any) {
@@ -119,7 +119,7 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
 
   const handleSaveContact = async () => {
     try {
-      await dispatch(updateUserProfile({ phone: editedPhone })).unwrap();
+      await dispatch(updateCandidateProfile({ phone: editedPhone })).unwrap();
       setIsEditingContact(false);
       Alert.alert('Success', 'Contact information updated');
     } catch (error: any) {
@@ -129,7 +129,7 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
 
   const handleSaveTitle = async () => {
     try {
-      await dispatch(updateUserProfile({ title: editedTitle })).unwrap();
+      await dispatch(updateCandidateProfile({ title: editedTitle })).unwrap();
       setIsEditingTitle(false);
       Alert.alert('Success', 'Title updated');
     } catch (error: any) {
@@ -139,7 +139,7 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
 
   const handleSaveLocation = async () => {
     try {
-      await dispatch(updateUserProfile({ location: editedLocation })).unwrap();
+      await dispatch(updateCandidateProfile({ location: editedLocation })).unwrap();
       setIsEditingLocation(false);
       Alert.alert('Success', 'Location updated');
     } catch (error: any) {

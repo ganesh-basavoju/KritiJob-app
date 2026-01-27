@@ -2,7 +2,7 @@
 // MANAGE JOBS SCREEN hdvxvdhvhdxhdxcdchdc vdgvc gv  gvc cv gdvc gdgvdxgdxc vbxdvcdvchvdnhxxhvhxn
 // ============================================
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useMemo} from 'react';
 import {
   View,
   StyleSheet,
@@ -15,7 +15,8 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useDispatch, useSelector} from 'react-redux';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {fetchMyJobs} from '../../redux/slices/employerSlice';
+import {useFocusEffect} from '@react-navigation/native';
+import {fetchMyJobs, deleteJob} from '../../redux/slices/employerSlice';
 import {AppDispatch, RootState} from '../../redux/store';
 import {Loader} from '../../components/common/Loader';
 import {EmptyState} from '../../components/common/EmptyState';
@@ -42,9 +43,24 @@ export const ManageJobsScreen: React.FC<any> = ({navigation}) => {
   const [refreshing, setRefreshing] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadJobs();
-  }, []);
+  // Deduplicate jobs by _id to prevent duplicate key errors
+  const uniqueJobs = useMemo(() => {
+    const jobsArray = Array.isArray(jobs) ? jobs : [];
+    const seen = new Set<string>();
+    return jobsArray.filter(job => {
+      if (!job._id || seen.has(job._id)) {
+        return false;
+      }
+      seen.add(job._id);
+      return true;
+    });
+  }, [jobs]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      loadJobs();
+    }, [])
+  );
 
   const loadJobs = async () => {
     await dispatch(fetchMyJobs(1));
@@ -84,22 +100,12 @@ export const ManageJobsScreen: React.FC<any> = ({navigation}) => {
   const confirmDelete = async (jobId: string) => {
     try {
       setDeletingId(jobId);
-      const token = await storageService.getAccessToken();
-      if (!token) throw new Error('Unauthorized');
-
-      const response = await fetch(`${API_BASE_URL}/jobs/${jobId}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
+      const result = await dispatch(deleteJob(jobId));
+      
+      if (deleteJob.fulfilled.match(result)) {
         Alert.alert('Success', 'Job deleted successfully.');
-        // Refresh list
-        await loadJobs();
       } else {
-        Alert.alert('Error', 'Failed to delete job.');
+        Alert.alert('Error', result.payload as string || 'Failed to delete job.');
       }
     } catch (error) {
       console.error('Delete Error:', error);
@@ -125,10 +131,7 @@ export const ManageJobsScreen: React.FC<any> = ({navigation}) => {
   };
 
   const renderJobItem = ({item}: {item: Job}) => (
-    <TouchableOpacity
-      style={styles.jobCard}
-      onPress={() => handleJobPress(item._id)}
-      activeOpacity={0.9}>
+    <View style={styles.jobCard}>
       
       <View style={styles.cardHeader}>
         <View style={styles.titleSection}>
@@ -179,26 +182,20 @@ export const ManageJobsScreen: React.FC<any> = ({navigation}) => {
           <Icon name="cash-outline" size={16} color={colors.textSecondary} />
           <Text style={styles.detailText}>{item.salaryRange}</Text>
         </View>
-        <View style={styles.detailRow}>
-          <Icon name="people-outline" size={16} color={colors.textSecondary} />
-          <Text style={styles.detailText}>
-            {item.applicantsCount || 0} Applicants
-          </Text>
-        </View>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 
-  if (loading && jobs.length === 0) {
+  if (loading && uniqueJobs.length === 0) {
     return <Loader />;
   }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <FlatList
-        data={jobs}
+        data={uniqueJobs}
         renderItem={renderJobItem}
-        keyExtractor={item => item._id}
+        keyExtractor={(item, index) => item._id ? `job-${item._id}` : `job-idx-${index}`}
         contentContainerStyle={styles.list}
         refreshing={refreshing}
         onRefresh={handleRefresh}

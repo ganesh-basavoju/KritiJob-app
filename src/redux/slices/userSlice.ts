@@ -42,45 +42,6 @@ export const updateUserProfile = createAsyncThunk(
   },
 );
 
-export const uploadResume = createAsyncThunk(
-  'user/uploadResume',
-  async (formData: FormData, {rejectWithValue}) => {
-    try {
-      const response = await userApi.uploadResume(formData);
-      return response.resumeUrl;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to upload resume');
-    }
-  },
-);
-
-export const uploadAvatar = createAsyncThunk(
-  'user/uploadAvatar',
-  async (formData: FormData, {rejectWithValue}) => {
-    try {
-      const avatarUrl = await userApi.uploadAvatar(formData);
-      return avatarUrl;
-    } catch (error: any) {
-      console.error('Upload avatar error in thunk:', error);
-      console.error('Error response:', error.response);
-      const errorMsg = error.response?.data?.message || error.message || 'Failed to upload avatar';
-      return rejectWithValue(errorMsg);
-    }
-  },
-);
-
-export const deleteResume = createAsyncThunk(
-  'user/deleteResume',
-  async (resumeId: string, {rejectWithValue}) => {
-    try {
-      await userApi.deleteResume(resumeId);
-      return resumeId;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to delete resume');
-    }
-  },
-);
-
 const userSlice = createSlice({
   name: 'user',
   initialState,
@@ -114,16 +75,6 @@ const userSlice = createSlice({
       .addCase(updateUserProfile.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-      })
-      .addCase(uploadResume.fulfilled, (state, action) => {
-        if (state.profile) {
-          state.profile.resume = action.payload;
-        }
-      })
-      .addCase(uploadAvatar.fulfilled, (state, action) => {
-        if (state.profile) {
-          state.profile.avatar = action.payload;
-        }
       });
   },
 });
