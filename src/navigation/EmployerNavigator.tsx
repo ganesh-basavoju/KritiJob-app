@@ -17,6 +17,10 @@ import {NotificationsScreen} from '../screens/notifications/NotificationsScreen'
 import {MoreScreen} from '../screens/employer/MoreScreen';
 import {EmployerProfileScreen} from '../screens/employer/EmployerProfileScreen';
 
+// NEW IMPORTS
+import {ViewApplicantsScreen} from '../screens/employer/ViewApplicantsScreen';
+import {JobApplicantsListScreen} from '../screens/employer/JobApplicantsListScreen';
+
 import {colors} from '../theme/colors';
 import {typography} from '../theme/typography';
 
@@ -36,6 +40,20 @@ const DashboardStack = () => (
       component={EmployerDashboardScreen}
       options={{headerShown: false}}
     />
+    
+    {/* NEW SCREENS ADDED HERE */}
+    <Stack.Screen
+      name="ViewApplicants"
+      component={ViewApplicantsScreen}
+      options={{title: 'Select a Job'}}
+    />
+    <Stack.Screen
+      name="JobApplicantsList"
+      component={JobApplicantsListScreen}
+      options={{title: 'Applicants'}}
+    />
+    {/* END NEW SCREENS */}
+
     <Stack.Screen
       name="PostJob"
       component={PostJobScreen}

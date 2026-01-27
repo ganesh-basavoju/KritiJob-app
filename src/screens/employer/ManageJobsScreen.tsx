@@ -1,5 +1,5 @@
 // ============================================
-// MANAGE JOBS SCREEN (Updated for API Alignment)
+// MANAGE JOBS SCREEN hdvxvdhvhdxhdxcdchdc vdgvc gv  gvc cv gdvc gdgvdxgdxc vbxdvcdvchvdnhxxhvhxn
 // ============================================
 
 import React, {useEffect, useState} from 'react';
@@ -9,44 +9,44 @@ import {
   FlatList,
   TouchableOpacity,
   Text,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useDispatch, useSelector} from 'react-redux';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {fetchMyJobs} from '../../redux/slices/employerSlice'; // Ensure this hits /api/jobs/my-jobs
+import {fetchMyJobs} from '../../redux/slices/employerSlice';
 import {AppDispatch, RootState} from '../../redux/store';
 import {Loader} from '../../components/common/Loader';
 import {EmptyState} from '../../components/common/EmptyState';
 import {colors} from '../../theme/colors';
 import {spacing, borderRadius, shadows} from '../../theme/spacing';
 import {typography} from '../../theme/typography';
+import {API_BASE_URL} from '../../utils/constants';
+import {storageService} from '../../services/storage.service';
 
-// Interface based on API Data Model
 interface Job {
   _id: string;
   title: string;
   location: string;
-  type: string; // Full-Time, Part-Time, etc.
-  salaryRange: string; // API uses salaryRange, code used salary
-  status: 'Open' | 'Closed' | 'Draft' | 'Archived'; // Matches API Docs exactly
-  // Applications count might need to be calculated from a separate endpoint 
-  // or if the my-jobs endpoint populates applications.
+  type: string; 
+  salaryRange: string; 
+  status: 'Open' | 'Closed' | 'Draft' | 'Archived'; 
   applicantsCount?: number; 
   createdAt: string;
 }
 
 export const ManageJobsScreen: React.FC<any> = ({navigation}) => {
   const dispatch = useDispatch<AppDispatch>();
-  // Assuming your Redux state 'jobs' holds the array from /api/jobs/my-jobs
   const {jobs, loading} = useSelector((state: RootState) => state.employer);
   const [refreshing, setRefreshing] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadJobs();
   }, []);
 
   const loadJobs = async () => {
-    // Maps to: GET /api/jobs/my-jobs
     await dispatch(fetchMyJobs(1));
   };
 
@@ -57,28 +57,67 @@ export const ManageJobsScreen: React.FC<any> = ({navigation}) => {
   };
 
   const handleJobPress = (jobId: string) => {
-    // Maps to: GET /api/applications/job/:jobId (if passing jobId)
-    // Or: GET /api/applications/employer/all (if filtering in screen)
     navigation.navigate('Applicants', {jobId});
   };
 
   const handleEditPress = (job: Job, event: any) => {
     event.stopPropagation();
-    // Maps to: PUT /api/jobs/:id
-    // PostJob screen should check for route.params.jobId to decide POST vs PUT
     navigation.navigate('PostJob', {jobId: job._id});
   };
 
-  // UPDATED: Logic to match API status strings ('Open', 'Closed', etc.)
+  // --- DELETE FUNCTIONALITY ---
+  const handleDelete = (jobId: string, title: string) => {
+    Alert.alert(
+      'Delete Job',
+      `Are you sure you want to delete "${title}"? This action cannot be undone.`,
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => confirmDelete(jobId),
+        },
+      ]
+    );
+  };
+
+  const confirmDelete = async (jobId: string) => {
+    try {
+      setDeletingId(jobId);
+      const token = await storageService.getAccessToken();
+      if (!token) throw new Error('Unauthorized');
+
+      const response = await fetch(`${API_BASE_URL}/jobs/${jobId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        Alert.alert('Success', 'Job deleted successfully.');
+        // Refresh list
+        await loadJobs();
+      } else {
+        Alert.alert('Error', 'Failed to delete job.');
+      }
+    } catch (error) {
+      console.error('Delete Error:', error);
+      Alert.alert('Error', 'Network error occurred.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Open': // Changed from 'active'
+      case 'Open':
         return colors.success;
-      case 'Closed': // Matches API
+      case 'Closed':
         return colors.textSecondary;
-      case 'Draft': // Matches API
+      case 'Draft':
         return colors.warning;
-      case 'Archived': // Matches API
+      case 'Archived':
         return colors.error;
       default:
         return colors.textSecondary;
@@ -90,6 +129,7 @@ export const ManageJobsScreen: React.FC<any> = ({navigation}) => {
       style={styles.jobCard}
       onPress={() => handleJobPress(item._id)}
       activeOpacity={0.9}>
+      
       <View style={styles.cardHeader}>
         <View style={styles.titleSection}>
           <Text style={styles.jobTitle}>{item.title}</Text>
@@ -103,17 +143,31 @@ export const ManageJobsScreen: React.FC<any> = ({navigation}) => {
                 styles.statusText,
                 {color: getStatusColor(item.status)},
               ]}>
-              {item.status} 
+              {item.status}
             </Text>
           </View>
         </View>
 
-        {/* Edit Button */}
-        <TouchableOpacity
-          style={styles.editButton}
-          onPress={(e) => handleEditPress(item, e)}>
-          <Icon name="pencil-outline" size={20} color={colors.primary} />
-        </TouchableOpacity>
+        {/* Action Buttons Container */}
+        <View style={styles.actionButtons}>
+          <TouchableOpacity
+            style={[styles.iconButton, {backgroundColor: colors.backgroundSecondary}]}
+            onPress={(e) => handleEditPress(item, e)}
+            disabled={deletingId === item._id}>
+            <Icon name="pencil-outline" size={18} color={colors.primary} />
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[styles.iconButton, {backgroundColor: colors.error + '20'}]}
+            onPress={() => handleDelete(item._id, item.title)}
+            disabled={deletingId === item._id}>
+            {deletingId === item._id ? (
+              <ActivityIndicator size="small" color={colors.error} />
+            ) : (
+              <Icon name="trash-outline" size={18} color={colors.error} />
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.cardBody}>
@@ -123,7 +177,6 @@ export const ManageJobsScreen: React.FC<any> = ({navigation}) => {
         </View>
         <View style={styles.detailRow}>
           <Icon name="cash-outline" size={16} color={colors.textSecondary} />
-          {/* Using salaryRange based on API Model */}
           <Text style={styles.detailText}>{item.salaryRange}</Text>
         </View>
         <View style={styles.detailRow}>
@@ -204,10 +257,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textTransform: 'capitalize',
   },
-  editButton: {
+  actionButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconButton: {
     padding: spacing.sm,
-    backgroundColor: colors.backgroundSecondary,
     borderRadius: borderRadius.sm,
+    marginLeft: spacing.xs,
   },
   cardBody: {
     marginTop: spacing.sm,
