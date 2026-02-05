@@ -29,14 +29,47 @@ export const PostJobScreen: React.FC<any> = ({navigation, route}) => {
 
   const [initialValues, setInitialValues] = useState<any>(null);
   const [fetchingJob, setFetchingJob] = useState(isEditing);
+  const [companyCheckDone, setCompanyCheckDone] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchMyCompany());
+    const checkCompany = async () => {
+      await dispatch(fetchMyCompany());
+      setCompanyCheckDone(true);
+    };
+    checkCompany();
 
     if (isEditing && jobId) {
       fetchJobDetails(jobId);
     }
   }, [dispatch, isEditing, jobId]);
+
+  // Prevent posting job if company profile doesn't exist
+  useEffect(() => {
+    if (companyCheckDone && !companyLoading && !isEditing && !myCompany) {
+      Alert.alert(
+        'Company Profile Required',
+        'You need to create your company profile before posting a job.',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+            onPress: () => navigation.goBack(),
+          },
+          {
+            text: 'Create Profile',
+            onPress: () => {
+              navigation.goBack();
+              // Navigate to company profile screen after a slight delay
+              setTimeout(() => {
+                navigation.navigate('ProfileTab');
+              }, 100);
+            },
+          },
+        ],
+        {cancelable: false}
+      );
+    }
+  }, [companyCheckDone, companyLoading, isEditing, myCompany, navigation]);
 
   const fetchJobDetails = async (id: string) => {
     try {

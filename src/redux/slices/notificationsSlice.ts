@@ -92,8 +92,10 @@ export const fetchUnreadCount = createAsyncThunk(
   async (_, {rejectWithValue}) => {
     try {
       const response = await notificationsApi.getUnreadCount();
-      return response.count;
+      console.log('🔴 fetchUnreadCount response:', response);
+      return response.unreadCount;
     } catch (error: any) {
+      console.log('🔴 fetchUnreadCount error:', error);
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch unread count');
     }
   },
@@ -153,13 +155,19 @@ const notificationsSlice = createSlice({
           totalPages: action.payload.totalPages,
           total: action.payload.total,
         };
+        // Update unread count from response
+        if (action.payload.unreadCount !== undefined) {
+          state.unreadCount = action.payload.unreadCount;
+        }
       })
       .addCase(fetchNotifications.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })
       .addCase(markAsRead.fulfilled, (state, action) => {
-        const notification = state.notifications.find(n => n.id === action.payload);
+        const notification = state.notifications.find(
+          n => n.id === action.payload || (n as any)._id === action.payload
+        );
         if (notification && !notification.read) {
           notification.read = true;
           state.unreadCount = Math.max(0, state.unreadCount - 1);
@@ -170,13 +178,18 @@ const notificationsSlice = createSlice({
         state.unreadCount = 0;
       })
       .addCase(deleteNotification.fulfilled, (state, action) => {
-        const notification = state.notifications.find(n => n.id === action.payload);
+        const notification = state.notifications.find(
+          n => n.id === action.payload || (n as any)._id === action.payload
+        );
         if (notification && !notification.read) {
           state.unreadCount = Math.max(0, state.unreadCount - 1);
         }
-        state.notifications = state.notifications.filter(n => n.id !== action.payload);
+        state.notifications = state.notifications.filter(
+          n => n.id !== action.payload && (n as any)._id !== action.payload
+        );
       })
       .addCase(fetchUnreadCount.fulfilled, (state, action) => {
+        console.log('🔴 Setting unreadCount to:', action.payload);
         state.unreadCount = action.payload;
       })
       .addCase(updateNotificationSettings.fulfilled, (state, action) => {

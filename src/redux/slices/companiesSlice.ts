@@ -160,8 +160,18 @@ const companiesSlice = createSlice({
       .addCase(updateCompany.fulfilled, (state, action) => {
         state.myCompany = action.payload;
       })
+      .addCase(fetchMyCompany.pending, state => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(fetchMyCompany.fulfilled, (state, action) => {
+        state.loading = false;
         state.myCompany = action.payload;
+      })
+      .addCase(fetchMyCompany.rejected, (state, action) => {
+        state.loading = false;
+        state.myCompany = null;
+        state.error = action.payload as string;
       });
   },
 });

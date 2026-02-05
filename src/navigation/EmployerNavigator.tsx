@@ -2,10 +2,14 @@
 // EMPLOYER NAVIGATOR
 // ============================================
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
+import {useSelector, useDispatch} from 'react-redux';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {AppState} from 'react-native';
+import {RootState, AppDispatch} from '../redux/store';
+import {fetchUnreadCount} from '../redux/slices/notificationsSlice';
 
 // Screens
 import {EmployerDashboardScreen} from '../screens/employer/EmployerDashboardScreen';
@@ -145,6 +149,11 @@ const MoreStack = () => (
       component={NotificationsScreen}
       options={{title: 'Notifications'}}
     />
+    <Stack.Screen
+      name="CandidateProfile"
+      component={CandidateProfileScreen}
+      options={{title: 'Candidate Profile'}}
+    />
     {/* Kept EmployerProfile here just in case deep links navigate from More, 
         but usually accessed via the Profile Tab now */}
     <Stack.Screen
@@ -156,6 +165,25 @@ const MoreStack = () => (
 );
 
 export const EmployerNavigator: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const {unreadCount} = useSelector((state: RootState) => state.notifications);
+
+  useEffect(() => {
+    // Fetch unread count when navigator mounts
+    dispatch(fetchUnreadCount());
+
+    // Also fetch when app comes to foreground
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        dispatch(fetchUnreadCount());
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [dispatch]);
+
   return (
     <Tab.Navigator
       screenOptions={{

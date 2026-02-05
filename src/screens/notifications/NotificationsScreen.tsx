@@ -23,7 +23,7 @@ import {typography} from '../../theme/typography';
 import {Notification} from '../../types';
 import {formatRelativeTime} from '../../utils/dateFormatter';
 
-export const NotificationsScreen: React.FC<any> = () => {
+export const NotificationsScreen: React.FC<any> = ({navigation}) => {
   const dispatch = useDispatch<AppDispatch>();
   const {notifications, loading, unreadCount} = useSelector(
     (state: RootState) => state.notifications,
@@ -44,8 +44,48 @@ export const NotificationsScreen: React.FC<any> = () => {
     setRefreshing(false);
   };
 
-  const handleMarkAsRead = async (id: string) => {
-    await dispatch(markAsRead(id));
+  const handleNotificationPress = async (notification: Notification) => {
+    const notificationId = (notification as any)._id || notification.id;
+    
+    // Mark as read
+    if (!notification.read) {
+      await dispatch(markAsRead(notificationId));
+    }
+
+    // Navigate based on notification type
+    const notificationType = (notification as any).type;
+    const actionData = (notification as any).actionData || (notification as any).data || {};
+    
+    if (notificationType === 'job_alert') {
+      // Navigate to Job Details
+      const jobId = actionData.jobId || actionData.job_id;
+      if (jobId) {
+        navigation.navigate('Jobs', {
+          screen: 'JobDetails',
+          params: { jobId }
+        });
+      }
+    } else if (notificationType === 'application_status') {
+      // Navigate to Application Details
+      const applicationId = actionData.applicationId || actionData.application_id;
+      if (applicationId) {
+        // Fetch application data if needed
+        navigation.navigate('Applications', {
+          screen: 'ApplicationDetails',
+          params: { application: actionData }
+        });
+      }
+    } else if (notificationType === 'new_applicant') {
+      // Navigate to Candidate Profile (for employer)
+      const candidateId = actionData.candidateId || actionData.candidate_id;
+      const applicationId = actionData.applicationId || actionData.application_id;
+      if (candidateId) {
+        navigation.navigate('CandidateProfile', {
+          candidateId,
+          applicationId
+        });
+      }
+    }
   };
 
   const handleMarkAllAsRead = async () => {
@@ -58,20 +98,31 @@ export const NotificationsScreen: React.FC<any> = () => {
 
   const renderNotification = ({item}: {item: Notification}) => {
     const notificationId = (item as any)._id || item.id;
+    const isUnread = !item.read;
     
     return (
       <TouchableOpacity
-        style={[styles.card, !item.read && styles.unreadCard]}
-        onPress={() => handleMarkAsRead(notificationId)}
+        style={[styles.card, isUnread && styles.unreadCard]}
+        onPress={() => handleNotificationPress(item)}
         activeOpacity={0.7}>
         <View style={styles.cardContent}>
-          <Text style={styles.title}>{item.title}</Text>
-          <Text style={styles.body}>{item.body}</Text>
+          {isUnread && <View style={styles.unreadDot} />}
+          <View style={styles.titleRow}>
+            <Text style={[styles.title, isUnread && styles.unreadTitle]}>
+              {item.title}
+            </Text>
+          </View>
+          <Text style={[styles.body, isUnread && styles.unreadBody]}>
+            {item.body}
+          </Text>
           <Text style={styles.time}>{formatRelativeTime(item.createdAt)}</Text>
         </View>
         <TouchableOpacity
           style={styles.deleteButton}
-          onPress={() => handleDelete(notificationId)}>
+          onPress={(e) => {
+            e.stopPropagation();
+            handleDelete(notificationId);
+          }}>
           <Icon name="close-circle" size={24} color={colors.error} />
         </TouchableOpacity>
       </TouchableOpacity>
@@ -82,7 +133,7 @@ export const NotificationsScreen: React.FC<any> = () => {
     <View style={styles.header}>
       {unreadCount > 0 && (
         <Button
-          title={`Mark All Read (${unreadCount})`}
+          title={`Mark All as Read (${unreadCount})`}
           onPress={handleMarkAllAsRead}
           variant="secondary"
           style={styles.markAllButton}
@@ -141,23 +192,45 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     ...shadows.md,
+    position: 'relative',
   },
   unreadCard: {
     borderLeftWidth: 4,
     borderLeftColor: colors.yellow,
+    backgroundColor: colors.card,
+  },
+  unreadDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.error,
+    marginBottom: spacing.xs,
+    alignSelf: 'flex-start',
   },
   cardContent: {
     flex: 1,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
   title: {
     ...typography.h6,
     color: colors.textPrimary,
-    marginBottom: spacing.xs,
+  },
+  unreadTitle: {
+    fontWeight: 'bold',
+    color: colors.textPrimary,
   },
   body: {
     ...typography.body2,
     color: colors.textSecondary,
     marginBottom: spacing.sm,
+  },
+  unreadBody: {
+    color: colors.textPrimary,
+    fontWeight: '600',
   },
   time: {
     ...typography.caption,
