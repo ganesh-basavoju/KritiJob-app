@@ -6,10 +6,13 @@ import axiosInstance from './axios';
 import {Company, PaginatedResponse} from '../types';
 
 // Helper to transform MongoDB _id to id
-const transformCompany = (data: any): Company => ({
-  ...data,
-  id: data._id || data.id,
-});
+const transformCompany = (data: any): Company | null => {
+  if (!data) return null;
+  return {
+    ...data,
+    id: data._id || data.id,
+  };
+};
 
 export const companiesApi = {
   async getCompanies(
@@ -48,7 +51,7 @@ export const companiesApi = {
     return transformCompany(response.data.data);
   },
 
-  async getMyCompany(): Promise<Company> {
+  async getMyCompany(): Promise<Company | null> {
     const response = await axiosInstance.get('/company/me');
     return transformCompany(response.data.data);
   },

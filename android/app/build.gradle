@@ -109,6 +109,16 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
+    signingConfigs {
+    release {
+        if (project.hasProperty('DEMO_STORE_FILE')) {
+            storeFile file(DEMO_STORE_FILE)
+            storePassword DEMO_STORE_PASSWORD
+            keyAlias DEMO_KEY_ALIAS
+            keyPassword DEMO_KEY_PASSWORD
+        }
+    }
+}
 }
 
 dependencies {
@@ -124,3 +134,6 @@ dependencies {
         implementation jscFlavor
     }
 }
+
+
+

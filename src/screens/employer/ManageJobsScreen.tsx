@@ -23,8 +23,7 @@ import {EmptyState} from '../../components/common/EmptyState';
 import {colors} from '../../theme/colors';
 import {spacing, borderRadius, shadows} from '../../theme/spacing';
 import {typography} from '../../theme/typography';
-import {API_BASE_URL} from '../../utils/constants';
-import {storageService} from '../../services/storage.service';
+
 
 interface Job {
   _id: string;

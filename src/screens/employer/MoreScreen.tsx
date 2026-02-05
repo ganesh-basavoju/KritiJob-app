@@ -252,6 +252,7 @@ import {storageService} from '../../services/storage.service';
 export const MoreScreen: React.FC<any> = ({navigation}) => {
   const dispatch = useDispatch<AppDispatch>();
   const {user} = useSelector((state: RootState) => state.auth);
+  const {unreadCount} = useSelector((state: RootState) => state.notifications);
   
   // State to store company data
   const [company, setCompany] = useState<any>(null);
@@ -306,20 +307,13 @@ export const MoreScreen: React.FC<any> = ({navigation}) => {
   };
 
   const menuItems = [
-    // {
-    //   id: 'notifications',
-    //   title: 'Notifications',
-    //   icon: 'notifications-outline',
-    //   onPress: () => navigation.navigate('Notifications'),
-    // },
     {
-      id: 'help',
-      title: 'Help & Support',
-      icon: 'help-circle-outline',
-      onPress: () => {
-        Alert.alert('Coming Soon', 'Help & support will be available soon');
-      },
+      id: 'notifications',
+      title: 'Notifications',
+      icon: 'notifications-outline',
+      onPress: () => navigation.navigate('Notifications'),
     },
+    
     {
       id: 'about',
       title: 'About',
@@ -363,7 +357,12 @@ export const MoreScreen: React.FC<any> = ({navigation}) => {
               style={styles.menuItem}
               onPress={item.onPress}>
               <View style={styles.menuItemLeft}>
-                <Icon name={item.icon} size={24} color={colors.textPrimary} />
+                <View style={styles.iconContainer}>
+                  <Icon name={item.icon} size={24} color={colors.textPrimary} />
+                  {item.id === 'notifications' && unreadCount > 0 && (
+                    <View style={styles.badge} />
+                  )}
+                </View>
                 <Text style={styles.menuItemText}>{item.title}</Text>
               </View>
               <Icon name="chevron-forward" size={20} color={colors.textSecondary} />
@@ -445,6 +444,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
+  },
+  iconContainer: {
+    position: 'relative',
+    width: 24,
+    height: 24,
+  },
+  badge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.error,
   },
   menuItemText: {
     ...typography.body1,

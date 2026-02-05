@@ -1,5 +1,5 @@
 
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   View,
   Text,
@@ -8,26 +8,25 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
-  ActivityIndicator,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
-import {useSelector} from 'react-redux';
+import {useForm, Controller} from 'react-hook-form';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {RootState} from '../../redux/store';
 import {colors} from '../../theme/colors';
 import {spacing, borderRadius} from '../../theme/spacing';
 import {typography} from '../../theme/typography';
+import {Button} from '../../components/common/Button';
+import {Input} from '../../components/common/Input';
+import {Loader} from '../../components/common/Loader';
 import {API_BASE_URL} from '../../utils/constants';
 import {storageService} from '../../services/storage.service';
-import {Picker} from '@react-native-picker/picker';
 
 
 const EMPLOYEE_COUNT_OPTIONS = [
-  '1-10',
-  '11-50',
-  '51-200',
-  '201-500',
-  '500+',
+  {value: '1-10', label: '1-10'},
+  {value: '11-50', label: '11-50'},
+  {value: '51-200', label: '51-200'},
+  {value: '201-500', label: '201-500'},
+  {value: '500+', label: '500+'},
 ];
 
 
@@ -51,27 +50,23 @@ interface ApiResponse {
   message?: string;
 }
 
-export const EmployerProfileScreen: React.FC<any> = ({navigation}) => {
-  const {user} = useSelector((state: RootState) => state.auth);
-  
-  const initialFormData: CompanyData = {
-    name: '',
-    description: '',
-    logoUrl: '',
-    website: '',
-    location: '',
-    employeesCount: '1-10',
-  };
-
-  const [formData, setFormData] = useState<CompanyData>(initialFormData);
-  const [loading, setLoading] = useState<boolean>(false);
+export const EmployerProfileScreen: React.FC<any> = ({navigation: _navigation}) => {
+  const [submitLoading, setSubmitLoading] = useState<boolean>(false);
   const [fetching, setFetching] = useState<boolean>(true);
+  const [companyId, setCompanyId] = useState<string | null>(null);
+  const [selectedEmployeeCount, setSelectedEmployeeCount] = useState('1-10');
 
-  useEffect(() => {
-    fetchCompanyData();
-  }, []);
+  const {control, handleSubmit, setValue, reset} = useForm({
+    defaultValues: {
+      name: '',
+      description: '',
+      website: '',
+      location: '',
+      employeesCount: '1-10',
+    },
+  });
 
-  const fetchCompanyData = async () => {
+  const fetchCompanyData = useCallback(async () => {
     try {
       setFetching(true);
       const token = await storageService.getAccessToken();
@@ -100,40 +95,42 @@ export const EmployerProfileScreen: React.FC<any> = ({navigation}) => {
 
       const json: ApiResponse = await response.json();
       
-      console.log('GET /company/me Response:', json.data); // DEBUG LOG
+      console.log('GET /company/me Response:', json.data);
 
       if (json.success && json.data) {
-        // FIX: Check for both 'id' and '_id'. MongoDB often uses '_id'.
-        const companyId = json.data!.id || json.data!._id;
+        const id = json.data!.id || json.data!._id;
         
-        if (!companyId) {
+        if (!id) {
           console.warn('Warning: Company ID not found in API response!');
         }
 
-        setFormData({
-          id: companyId, 
+        setCompanyId(id || null);
+        reset({
           name: json.data!.name || '',
           description: json.data!.description || '',
-          logoUrl: json.data!.logoUrl || '',
           website: json.data!.website || '',
           location: json.data!.location || '',
-          employeesCount: json.data!.employeesCount || '',
+          employeesCount: json.data!.employeesCount || '1-10',
         });
+        setSelectedEmployeeCount(json.data!.employeesCount || '1-10');
       }
     } catch (error: any) {
       console.error('Fetch Error:', error);
     } finally {
       setFetching(false);
     }
-  };
+  }, [reset]);
 
-  const handleSave = async () => {
-    if (!formData.name || !formData.description || !formData.location) {
-      Alert.alert('Error', 'Please fill in the required fields (Name, Description, Location).');
-      return;
-    }
+  useEffect(() => {
+    fetchCompanyData();
+  }, [fetchCompanyData]);
 
-    setLoading(true);
+  useEffect(() => {
+    setValue('employeesCount', selectedEmployeeCount);
+  }, [selectedEmployeeCount, setValue]);
+
+  const onSubmit = async (data: any) => {
+    setSubmitLoading(true);
     try {
       const token = await storageService.getAccessToken();
       
@@ -141,34 +138,27 @@ export const EmployerProfileScreen: React.FC<any> = ({navigation}) => {
         throw new Error('Authentication token missing. Please log out and log in again.');
       }
 
-      const body = new FormData();
-      body.append('name', formData.name);
-      body.append('description', formData.description);
-      body.append('location', formData.location);
-      
-      if (formData.website) body.append('website', formData.website);
-      if (formData.employeesCount) body.append('employeesCount', formData.employeesCount);
+      console.log('Attempting to Save. Current ID:', companyId);
 
       let url = '';
       let method = '';
 
-      // LOGGING TO DIAGNOSE ISSUE
-      console.log('Attempting to Save. Current ID:', formData.id);
-
-      // SAFETY CHECK:
-      // If ID is missing but we have data (name), it implies we failed to capture the ID.
-      // If ID is present, we UPDATE (PUT).
-      if (formData.id) {
-        url = `${API_BASE_URL}/company/${formData.id}`;
+      if (companyId) {
+        url = `${API_BASE_URL}/company/${companyId}`;
         method = 'PUT';
       } else {
-        // ID is missing. We must assume this is a Create (POST) request.
         url = `${API_BASE_URL}/company`;
         method = 'POST';
-        
-        // Alert user that we are creating, not updating
         console.warn('ID is missing. Attempting to CREATE a new profile.');
       }
+
+      const body = new FormData();
+      body.append('name', data.name);
+      body.append('description', data.description);
+      body.append('location', data.location);
+      
+      if (data.website) body.append('website', data.website);
+      if (data.employeesCount) body.append('employeesCount', data.employeesCount);
 
       const response = await fetch(url, {
         method: method,
@@ -178,15 +168,13 @@ export const EmployerProfileScreen: React.FC<any> = ({navigation}) => {
         body: body,
       });
 
-      // Handle non-JSON responses (like HTML errors)
       const contentType = response.headers.get("content-type");
       let json: ApiResponse;
-      let rawText = '';
 
       if (contentType && contentType.indexOf("application/json") !== -1) {
         json = await response.json();
       } else {
-        rawText = await response.text();
+        const rawText = await response.text();
         console.error('Server Response (Text):', rawText);
         throw new Error('Server returned an invalid response.');
       }
@@ -194,13 +182,12 @@ export const EmployerProfileScreen: React.FC<any> = ({navigation}) => {
       if (response.ok) {
         Alert.alert(
           'Success', 
-          formData.id ? 'Company profile updated successfully!' : 'Company profile created successfully!',
+          companyId ? 'Company profile updated successfully!' : 'Company profile created successfully!',
           [
-            {text: 'OK', onPress: () => navigation.goBack()},
+            {text: 'OK', onPress: () => fetchCompanyData()},
           ]
         );
       } else {
-        // Specific handling for the "Already exists" error
         if (json.message && json.message.includes('already')) {
            Alert.alert('Update Failed', 'The system thinks this is a new profile creation, but one already exists. Please refresh the screen or contact support.');
         } else {
@@ -211,127 +198,115 @@ export const EmployerProfileScreen: React.FC<any> = ({navigation}) => {
       console.error('Save Error:', error);
       Alert.alert('Error', error.message || 'Network error. Please check your connection.');
     } finally {
-      setLoading(false);
+      setSubmitLoading(false);
     }
   };
 
-  const updateField = (field: keyof CompanyData, value: string) => {
-    setFormData(prev => ({...prev, [field]: value}));
-  };
-
   if (fetching) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.yellow} />
-        </View>
-      </SafeAreaView>
-    );
+    return <Loader />;
   }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Icon name="arrow-back" size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Company Profile</Text>
-        <View style={{width: 24}} /> 
-      </View>
-
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.sectionTitle}>
-          {formData.name ? 'Edit Company Details' : 'Create Company Profile'}
-        </Text>
-        <Text style={styles.sectionSubtitle}>
-          Fill in the details to help candidates find you.
-        </Text>
-
-        <View style={styles.formContainer}>
-          
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Company Name *</Text>
-            <TextInput
-              style={styles.input}
+      <ScrollView style={styles.scrollView}>
+        <Controller
+          control={control}
+          name="name"
+          rules={{required: 'Company name is required'}}
+          render={({field: {onChange, value}, fieldState: {error}}) => (
+            <Input
+              label="Company Name*"
               placeholder="e.g. Tech Corp"
-              value={formData.name}
-              onChangeText={(text) => updateField('name', text)}
+              value={value}
+              onChangeText={onChange}
+              error={error?.message}
             />
-          </View>
+          )}
+        />
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Description *</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              placeholder="Brief description of the company..."
-              value={formData.description}
-              onChangeText={(text) => updateField('description', text)}
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-            />
-          </View>
+        <Controller
+          control={control}
+          name="description"
+          rules={{required: 'Description is required'}}
+          render={({field: {onChange, value}, fieldState: {error}}) => (
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Company Description*</Text>
+              <TextInput
+                style={[styles.textArea, error && styles.inputError]}
+                placeholder="Brief description of the company..."
+                value={value}
+                onChangeText={onChange}
+                multiline
+                numberOfLines={6}
+                placeholderTextColor={colors.inputPlaceholder}
+              />
+              {error && <Text style={styles.errorText}>{error.message}</Text>}
+            </View>
+          )}
+        />
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Website</Text>
-            <TextInput
-              style={styles.input}
+        <Controller
+          control={control}
+          name="website"
+          render={({field: {onChange, value}, fieldState: {error}}) => (
+            <Input
+              label="Website (optional)"
               placeholder="https://company.com"
-              value={formData.website}
-              onChangeText={(text) => updateField('website', text)}
+              value={value}
+              onChangeText={onChange}
+              error={error?.message}
               autoCapitalize="none"
               keyboardType="url"
             />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Location *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g. San Francisco, CA"
-              value={formData.location}
-              onChangeText={(text) => updateField('location', text)}
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-  <Text style={styles.label}>Employees Count</Text>
-  <View style={styles.pickerWrapper}>
-    <Picker
-      selectedValue={formData.employeesCount || '1-10'}
-      onValueChange={(value) =>
-        updateField('employeesCount', value)
-      }
-      dropdownIconColor={colors.textPrimary}
-      style={styles.picker}
-    >
-      {EMPLOYEE_COUNT_OPTIONS.map(option => (
-        <Picker.Item
-          key={option}
-          label={option}
-          value={option}
-        />
-      ))}
-    </Picker>
-  </View>
-</View>
-
-
-        </View>
-      </ScrollView>
-
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.saveButton}
-          onPress={handleSave}
-          disabled={loading}>
-          {loading ? (
-            <ActivityIndicator color={colors.textPrimary || colors.black} /> 
-          ) : (
-            <Text style={styles.saveButtonText}>Save Profile</Text>
           )}
-        </TouchableOpacity>
-      </View>
+        />
+
+        <Controller
+          control={control}
+          name="location"
+          rules={{required: 'Location is required'}}
+          render={({field: {onChange, value}, fieldState: {error}}) => (
+            <Input
+              label="Location*"
+              placeholder="e.g. San Francisco, CA"
+              value={value}
+              onChangeText={onChange}
+              error={error?.message}
+            />
+          )}
+        />
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Company Size*</Text>
+          <View style={styles.optionsRow}>
+            {EMPLOYEE_COUNT_OPTIONS.map(option => (
+              <TouchableOpacity
+                key={option.value}
+                style={[
+                  styles.option,
+                  selectedEmployeeCount === option.value && styles.optionSelected,
+                ]}
+                onPress={() => setSelectedEmployeeCount(option.value)}>
+                <Text
+                  style={[
+                    styles.optionText,
+                    selectedEmployeeCount === option.value &&
+                      styles.optionTextSelected,
+                  ]}>
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        <Button
+          title={companyId ? 'Update Profile' : 'Create Profile'}
+          onPress={handleSubmit(onSubmit)}
+          loading={submitLoading}
+          style={styles.submitButton}
+        />
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -341,103 +316,64 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  loadingContainer: {
+  scrollView: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  backButton: {
-    padding: spacing.xs,
-  },
-  headerTitle: {
-    ...typography.h6,
-    color: colors.textPrimary,
-    fontWeight: 'bold',
-  },
-  scrollContent: {
-    padding: spacing.md,
-    paddingBottom: 100,
-  },
-  sectionTitle: {
-    ...typography.h5,
-    color: colors.textPrimary,
-    marginBottom: spacing.xs,
-  },
-  sectionSubtitle: {
-    ...typography.body2,
-    color: colors.textSecondary,
-    marginBottom: spacing.lg,
-  },
-  formContainer: {
-    backgroundColor: colors.card,
-    borderRadius: borderRadius.md,
     padding: spacing.md,
   },
-  inputGroup: {
+  inputContainer: {
     marginBottom: spacing.md,
   },
   label: {
-    ...typography.body2,
+    ...typography.label,
     color: colors.textPrimary,
-    marginBottom: spacing.xs,
-    fontWeight: '600',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: borderRadius.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    color: colors.textPrimary,
-    backgroundColor: colors.background,
-    ...typography.body1,
+    marginBottom: spacing.sm,
   },
   textArea: {
-    height: 100,
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: colors.card,
-    padding: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    paddingBottom: spacing.md + 10, 
-  },
-  saveButton: {
-    backgroundColor: colors.yellow,
-    paddingVertical: spacing.md,
+    backgroundColor: colors.inputBackground,
+    borderWidth: 1,
+    borderColor: colors.inputBorder,
     borderRadius: borderRadius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: spacing.md,
+    color: colors.textPrimary,
+    fontSize: 16,
+    minHeight: 120,
+    textAlignVertical: 'top',
   },
-  saveButtonText: {
-    ...typography.button,
-    color: colors.black, 
-    fontWeight: 'bold',
+  inputError: {
+    borderColor: colors.error,
   },
-  pickerWrapper: {
-  borderWidth: 1,
-  borderColor: colors.border,
-  borderRadius: borderRadius.sm,
-  backgroundColor: colors.background,
-  overflow: 'hidden',
-},
-
-picker: {
-  color: colors.textPrimary,
-},
-
+  errorText: {
+    ...typography.caption,
+    color: colors.error,
+    marginTop: spacing.xs,
+  },
+  optionsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  option: {
+    backgroundColor: colors.backgroundTertiary,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+    marginRight: spacing.sm,
+    marginBottom: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  optionSelected: {
+    backgroundColor: colors.yellow,
+    borderColor: colors.yellow,
+  },
+  optionText: {
+    ...typography.body2,
+    color: colors.textPrimary,
+  },
+  optionTextSelected: {
+    color: colors.navyDark,
+  },
+  submitButton: {
+    marginTop: spacing.md,
+    marginBottom: spacing.xl,
+  },
 });
