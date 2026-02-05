@@ -44,12 +44,10 @@ export const ApplicationsScreen: React.FC<any> = ({navigation}) => {
       <FlatList
         data={applications}
         renderItem={({item}) => {
-          const job = (item as any).jobId || item.job;
-          const jobId = (job as any)?._id || job?.id;
           return (
             <ApplicationCard
               application={item}
-              onPress={() => jobId && navigation.navigate('JobDetails', {jobId})}
+              onPress={() => navigation.navigate('ApplicationDetails', {application: item})}
             />
           );
         }}

@@ -29,44 +29,14 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({
     return null;
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'accepted':
-        return colors.success;
-      case 'rejected':
-        return colors.error;
-      case 'shortlisted':
-        return colors.info;
-      case 'reviewed':
-        return colors.warning;
-      default:
-        return colors.textSecondary;
-    }
-  };
-
   return (
     <TouchableOpacity
       style={styles.card}
       onPress={onPress}
       activeOpacity={0.7}>
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Text style={styles.title}>{job.title}</Text>
-          <Text style={styles.company}>{company?.name || 'Company'}</Text>
-        </View>
-        <View
-          style={[
-            styles.statusContainer,
-            {backgroundColor: getStatusColor(application.status) + '20'},
-          ]}>
-          <Text
-            style={[
-              styles.statusText,
-              {color: getStatusColor(application.status)},
-            ]}>
-            {APPLICATION_STATUS[application.status as keyof typeof APPLICATION_STATUS]}
-          </Text>
-        </View>
+        <Text style={styles.title}>{job.title}</Text>
+        <Text style={styles.company}>{company?.name || 'Company'}</Text>
       </View>
 
       <View style={styles.details}>
@@ -98,13 +68,7 @@ const styles = StyleSheet.create({
     ...shadows.md,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
     marginBottom: spacing.sm,
-  },
-  headerLeft: {
-    flex: 1,
   },
   title: {
     ...typography.h5,
@@ -114,15 +78,6 @@ const styles = StyleSheet.create({
   company: {
     ...typography.body2,
     color: colors.textSecondary,
-  },
-  statusContainer: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.sm,
-  },
-  statusText: {
-    ...typography.caption,
-    fontWeight: '600',
   },
   details: {
     marginBottom: spacing.sm,
