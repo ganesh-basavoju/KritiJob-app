@@ -103,7 +103,9 @@ export const PostJobScreen: React.FC<any> = ({navigation, route}) => {
     }
 
     // 2. Prepare Payload matching API spec
-    // Remove fields not in API body spec (companyName, deadline)
+    // Set default deadline of 30 days from now if not provided
+    const deadline = data.deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    
     const payload = {
       title: data.title,
       description: data.description,
@@ -114,6 +116,7 @@ export const PostJobScreen: React.FC<any> = ({navigation, route}) => {
       skillsRequired: data.skillsRequired
         ? String(data.skillsRequired).split(',').map((s: string) => s.trim()).filter((s: string) => s)
         : [],
+      applicationDeadline: deadline instanceof Date ? deadline.toISOString() : deadline,
     };
 
     // Attach companyId ONLY for Create (POST)
