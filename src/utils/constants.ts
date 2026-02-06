@@ -2,7 +2,10 @@
 //src/utils/constants.tsob
 
 
-export const API_BASE_URL = `https://kriti-job-backend.vercel.app/api`
+const device_ip = "192.168.31.242"
+
+// export const API_BASE_URL = `https://kriti-job-backend.vercel.app/api`
+export const API_BASE_URL = `http://${device_ip}:5000/api`
 
 //export const SOCKET_URL = `http://${device_Ip}:5000`
 
