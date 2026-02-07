@@ -1,15 +1,18 @@
-// ============================================
-// USER NAVIGATOR
-// ============================================
+ 
 
 import React, {useEffect} from 'react';
-import {View, StyleSheet, AppState} from 'react-native';
+import {StyleSheet, AppState} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useSelector, useDispatch} from 'react-redux';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {RootState, AppDispatch} from '../redux/store';
 import {fetchUnreadCount} from '../redux/slices/notificationsSlice';
+import {View, TouchableOpacity} from 'react-native';
+
+
+// Screens
+import {HomeScreen} from '../screens/home/HomeScreen';
 import {JobFeedScreen} from '../screens/user/JobFeedScreen';
 import {JobDetailsScreen} from '../screens/user/JobDetailsScreen';
 import {SavedJobsScreen} from '../screens/user/SavedJobsScreen';
@@ -18,15 +21,58 @@ import {ApplicationDetailsScreen} from '../screens/user/ApplicationDetailsScreen
 import {UserProfileScreen} from '../screens/user/UserProfileScreen';
 import {CompaniesListScreen} from '../screens/companies/CompaniesListScreen';
 import {CompanyDetailsScreen} from '../screens/companies/CompanyDetailsScreen';
-import {NotificationsScreen} from '../screens/notifications/NotificationsScreen';
-// import {SettingsScreen} from '../screens/settings/SettingsScreen';
+
 import {colors} from '../theme/colors';
-import {spacing} from '../theme/spacing';
 import {typography} from '../theme/typography';
+import { NotificationsScreen } from '../screens/notifications/NotificationsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
+/* =========================
+   HOME STACK
+========================= */
+const HomeStack = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerStyle: { backgroundColor: colors.background },
+      headerTintColor: colors.textPrimary,
+      headerTitleStyle: typography.h5,
+    }}
+  >
+    <Stack.Screen
+      name="Home"
+      component={HomeScreen}
+      options={({ navigation }) => ({
+        title: 'Home',
+        headerRight: () => (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Notifications')}
+          >
+            <Icon
+              name="notifications-outline"
+              size={22}
+              color={colors.yellow}
+            />
+          </TouchableOpacity>
+        ),
+      })}
+    />
+
+    {/* ✅ ADD THIS */}
+    <Stack.Screen
+      name="Notifications"
+      component={NotificationsScreen}
+      options={{ title: 'Notifications' }}
+    />
+  </Stack.Navigator>
+);
+
+
+
+/* =========================
+   JOBS STACK
+========================= */
 const JobsStack = () => (
   <Stack.Navigator
     screenOptions={{
@@ -47,6 +93,9 @@ const JobsStack = () => (
   </Stack.Navigator>
 );
 
+/* =========================
+   SAVED STACK
+========================= */
 const SavedStack = () => (
   <Stack.Navigator
     screenOptions={{
@@ -67,6 +116,9 @@ const SavedStack = () => (
   </Stack.Navigator>
 );
 
+/* =========================
+   APPLICATIONS STACK
+========================= */
 const ApplicationsStack = () => (
   <Stack.Navigator
     screenOptions={{
@@ -97,6 +149,9 @@ const ApplicationsStack = () => (
   </Stack.Navigator>
 );
 
+/* =========================
+   COMPANIES STACK
+========================= */
 const CompaniesStack = () => (
   <Stack.Navigator
     screenOptions={{
@@ -117,58 +172,69 @@ const CompaniesStack = () => (
   </Stack.Navigator>
 );
 
-const NotificationsStack = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerStyle: {backgroundColor: colors.background},
-      headerTintColor: colors.textPrimary,
-      headerTitleStyle: typography.h5,
-    }}>
-    <Stack.Screen
-      name="NotificationsList"
-      component={NotificationsScreen}
-      options={{title: 'Notifications'}}
-    />
-  </Stack.Navigator>
-);
-
+/* =========================
+   PROFILE STACK
+========================= */
 const ProfileStack = () => (
   <Stack.Navigator
     screenOptions={{
-      headerStyle: {backgroundColor: colors.background},
+      headerStyle: { backgroundColor: colors.background },
       headerTintColor: colors.textPrimary,
       headerTitleStyle: typography.h5,
-    }}>
+    }}
+  >
     <Stack.Screen
       name="UserProfile"
       component={UserProfileScreen}
-      options={{title: 'Profile'}}
+      options={{ title: 'Profile' }}
+    />
+
+    {/* ✅ Saved Jobs */}
+    <Stack.Screen
+      name="SavedJobsList"
+      component={SavedJobsScreen}
+      options={{ title: 'Saved Jobs' }}
+    />
+
+    {/* ✅ Applications */}
+    <Stack.Screen
+      name="ApplicationsList"
+      component={ApplicationsScreen}
+      options={{ title: 'My Applications' }}
+    />
+
+    <Stack.Screen
+      name="ApplicationDetails"
+      component={ApplicationDetailsScreen}
+      options={{ title: 'Application Details' }}
+    />
+
+    <Stack.Screen
+      name="JobDetails"
+      component={JobDetailsScreen}
+      options={{ title: 'Job Details' }}
     />
   </Stack.Navigator>
 );
 
+
+/* =========================
+   USER NAVIGATOR
+========================= */
 export const UserNavigator: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const {unreadCount} = useSelector((state: RootState) => state.notifications);
 
-  console.log('🔴 UserNavigator unreadCount:', unreadCount);
-
   useEffect(() => {
-    // Fetch unread count when navigator mounts
-    console.log('🔴 UserNavigator mounting, fetching unread count');
     dispatch(fetchUnreadCount());
 
-    // Also fetch when app comes to foreground
-    const subscription = AppState.addEventListener('change', (nextAppState) => {
-      if (nextAppState === 'active') {
-        console.log('🔴 App came to foreground, fetching unread count');
+    const subscription = AppState.addEventListener('change', state => {
+      if (state === 'active') {
         dispatch(fetchUnreadCount());
       }
     });
 
-    return () => {
-      subscription.remove();
-    };
+    return () => subscription.remove();
   }, [dispatch]);
 
   return (
@@ -182,6 +248,24 @@ export const UserNavigator: React.FC = () => {
         tabBarInactiveTintColor: colors.textSecondary,
         headerShown: false,
       }}>
+
+      {/* 🏠 HOME TAB */}
+      <Tab.Screen
+        name="Home"
+        component={HomeStack}
+        options={{
+          tabBarLabel: 'Home',
+          tabBarIcon: ({color, focused}) => (
+            <Icon
+              name={focused ? 'home' : 'home-outline'}
+              size={24}
+              color={color}
+            />
+          ),
+        }}
+      />
+
+      {/* 💼 JOBS TAB */}
       <Tab.Screen
         name="Jobs"
         component={JobsStack}
@@ -196,7 +280,9 @@ export const UserNavigator: React.FC = () => {
           ),
         }}
       />
-      <Tab.Screen
+
+      {/* 🔖 SAVED TAB */}
+      {/* <Tab.Screen
         name="Saved"
         component={SavedStack}
         options={{
@@ -209,8 +295,10 @@ export const UserNavigator: React.FC = () => {
             />
           ),
         }}
-      />
-      <Tab.Screen
+      /> */}
+
+      {/* 📄 APPLICATIONS TAB */}
+      {/* <Tab.Screen
         name="Applications"
         component={ApplicationsStack}
         options={{
@@ -223,24 +311,9 @@ export const UserNavigator: React.FC = () => {
             />
           ),
         }}
-      />
-      <Tab.Screen
-        name="Notifications"
-        component={NotificationsStack}
-        options={{
-          tabBarLabel: 'Notifications',
-          tabBarIcon: ({color, focused}) => (
-            <View style={styles.iconContainer}>
-              <Icon
-                name={focused ? 'notifications' : 'notifications-outline'}
-                size={24}
-                color={color}
-              />
-              {unreadCount > 0 && <View style={styles.badge} />}
-            </View>
-          ),
-        }}
-      />
+      /> */}
+
+      {/* 🏢 COMPANIES TAB */}
       <Tab.Screen
         name="Companies"
         component={CompaniesStack}
@@ -255,6 +328,8 @@ export const UserNavigator: React.FC = () => {
           ),
         }}
       />
+
+      {/* 👤 PROFILE TAB */}
       <Tab.Screen
         name="Profile"
         component={ProfileStack}
@@ -269,23 +344,22 @@ export const UserNavigator: React.FC = () => {
           ),
         }}
       />
+
     </Tab.Navigator>
   );
 };
 
 const styles = StyleSheet.create({
-  iconContainer: {
-    width: 24,
-    height: 24,
-    position: 'relative',
+  notificationWrapper: {
+    padding: 8,
   },
-  badge: {
+  notificationDot: {
     position: 'absolute',
-    top: -4,
-    right: -4,
+    top: 0,
+    right: 0,
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.error,
+    backgroundColor: colors.yellow,
   },
 });

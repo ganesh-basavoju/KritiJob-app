@@ -145,13 +145,7 @@ export const AppNavigator: React.FC = () => {
 
   return (
     <NavigationContainer ref={navigationRef}>
-      {!isAuthenticated ? (
-        <AuthNavigator />
-      ) : user?.role === 'employer' ? (
-        <EmployerNavigator />
-      ) : (
-        <UserNavigator />
-      )}
-    </NavigationContainer>
+    <UserNavigator />
+  </NavigationContainer>
   );
 };

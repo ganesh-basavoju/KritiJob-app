@@ -1,15 +1,31 @@
 // ============================================
-// USER PROFILE SCREEN
+// USER PROFILE SCREEN - ENHANCED UI
 // ============================================
-
 import React, {useEffect, useState} from 'react';
-import {View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Platform, Image, Linking} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+  Platform,
+  Image,
+  Linking,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useDispatch, useSelector} from 'react-redux';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {launchImageLibrary} from 'react-native-image-picker';
 import * as DocumentPicker from '@react-native-documents/picker';
-import {fetchCandidateProfile, updateCandidateProfile, uploadAvatar, uploadResume, deleteResume} from '../../redux/slices/candidateSlice';
+import {
+  fetchCandidateProfile,
+  updateCandidateProfile,
+  uploadAvatar,
+  uploadResume,
+  deleteResume,
+} from '../../redux/slices/candidateSlice';
 import {logout} from '../../redux/slices/authSlice';
 import {AppDispatch, RootState} from '../../redux/store';
 import {Button} from '../../components/common/Button';
@@ -18,7 +34,7 @@ import {colors} from '../../theme/colors';
 import {spacing, borderRadius} from '../../theme/spacing';
 import {typography} from '../../theme/typography';
 
-export const UserProfileScreen: React.FC<any> = ({navigation}) => {
+export const UserProfileScreen: React.FC = ({navigation}) => {
   const dispatch = useDispatch<AppDispatch>();
   const {profile, loading} = useSelector((state: RootState) => state.candidate);
   const {user} = useSelector((state: RootState) => state.auth);
@@ -28,6 +44,7 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
   const [isEditingContact, setIsEditingContact] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isEditingLocation, setIsEditingLocation] = useState(false);
+
   const [editedAbout, setEditedAbout] = useState('');
   const [editedSkills, setEditedSkills] = useState('');
   const [editedPhone, setEditedPhone] = useState('');
@@ -87,7 +104,7 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
       console.log('Uploading avatar...');
       const response = await dispatch(uploadAvatar(formData)).unwrap();
       console.log('Avatar uploaded:', response);
-      
+
       await loadProfile();
       Alert.alert('Success', 'Avatar uploaded successfully');
     } catch (error: any) {
@@ -98,7 +115,7 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
 
   const handleSaveAbout = async () => {
     try {
-      await dispatch(updateCandidateProfile({ about: editedAbout })).unwrap();
+      await dispatch(updateCandidateProfile({about: editedAbout})).unwrap();
       setIsEditingAbout(false);
       Alert.alert('Success', 'About section updated');
     } catch (error: any) {
@@ -108,8 +125,11 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
 
   const handleSaveSkills = async () => {
     try {
-      const skillsArray = editedSkills.split(',').map(s => s.trim()).filter(s => s.length > 0);
-      await dispatch(updateCandidateProfile({ skills: skillsArray })).unwrap();
+      const skillsArray = editedSkills
+        .split(',')
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+      await dispatch(updateCandidateProfile({skills: skillsArray})).unwrap();
       setIsEditingSkills(false);
       Alert.alert('Success', 'Skills updated');
     } catch (error: any) {
@@ -119,7 +139,7 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
 
   const handleSaveContact = async () => {
     try {
-      await dispatch(updateCandidateProfile({ phone: editedPhone })).unwrap();
+      await dispatch(updateCandidateProfile({phone: editedPhone})).unwrap();
       setIsEditingContact(false);
       Alert.alert('Success', 'Contact information updated');
     } catch (error: any) {
@@ -129,7 +149,7 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
 
   const handleSaveTitle = async () => {
     try {
-      await dispatch(updateCandidateProfile({ title: editedTitle })).unwrap();
+      await dispatch(updateCandidateProfile({title: editedTitle})).unwrap();
       setIsEditingTitle(false);
       Alert.alert('Success', 'Title updated');
     } catch (error: any) {
@@ -139,7 +159,7 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
 
   const handleSaveLocation = async () => {
     try {
-      await dispatch(updateCandidateProfile({ location: editedLocation })).unwrap();
+      await dispatch(updateCandidateProfile({location: editedLocation})).unwrap();
       setIsEditingLocation(false);
       Alert.alert('Success', 'Location updated');
     } catch (error: any) {
@@ -150,7 +170,11 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
   const handleUploadResume = async () => {
     try {
       const result = await DocumentPicker.pick({
-        type: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+        type: [
+          'application/pdf',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ],
         copyTo: 'cachesDirectory',
       });
 
@@ -160,7 +184,7 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
 
       const file = result[0];
       console.log('Selected file:', file);
-      
+
       const formData = new FormData();
       formData.append('resume', {
         uri: file.fileCopyUri || file.uri,
@@ -171,11 +195,10 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
       console.log('Uploading resume...');
       const response = await dispatch(uploadResume(formData)).unwrap();
       console.log('Upload response:', response);
-      
+
       await loadProfile();
       Alert.alert('Success', 'Resume uploaded successfully');
     } catch (error: any) {
-      // User cancelled or error occurred
       if (error?.message?.includes('cancel')) {
         return;
       }
@@ -221,8 +244,7 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
   }
 
   const profileData = profile || user;
-  
-  // Debug avatar URL
+
   console.log('Profile data:', {
     profileAvatarUrl: profile?.avatarUrl,
     profileAvatar: profile?.avatar,
@@ -240,111 +262,112 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.content}>
-        {/* Header with Avatar */}
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Enhanced Header with Avatar */}
         <View style={styles.header}>
-          <View style={styles.avatarWrapper}>
-            {profile?.avatarUrl ? (
-              <Image 
-                source={{ uri: `${profile.avatarUrl}?t=${Date.now()}` }} 
-                style={styles.avatarImage}
-              />
+          <View style={styles.avatarSection}>
+            <View style={styles.avatarWrapper}>
+              {profile?.avatarUrl ? (
+                <Image source={{uri: profile.avatarUrl}} style={styles.avatarImage} />
+              ) : (
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>{getInitials(user?.name)}</Text>
+                </View>
+              )}
+              <TouchableOpacity style={styles.editAvatarButton} onPress={handleUploadAvatar}>
+                <Icon name="camera" size={16} color={colors.navyDark} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.name}>{user?.name}</Text>
+
+            {/* Title/Experience */}
+            {isEditingTitle ? (
+              <View style={styles.inlineEditContainer}>
+                <Icon name="briefcase-outline" size={16} color={colors.textSecondary} />
+                <TextInput
+                  style={styles.inlineInput}
+                  value={editedTitle}
+                  onChangeText={setEditedTitle}
+                  placeholder="Add your title"
+                  placeholderTextColor={colors.textTertiary}
+                />
+                <View style={styles.inlineActions}>
+                  <TouchableOpacity onPress={() => setIsEditingTitle(false)}>
+                    <Icon name="close-circle" size={20} color={colors.textSecondary} />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={handleSaveTitle}>
+                    <Icon name="checkmark-circle" size={20} color={colors.yellow} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : profile?.title ? (
+              <TouchableOpacity style={styles.infoItem} onPress={() => setIsEditingTitle(true)}>
+                <Icon name="briefcase-outline" size={16} color={colors.textSecondary} style={styles.infoIcon} />
+                <Text style={styles.infoText}>{profile.title}</Text>
+              </TouchableOpacity>
             ) : (
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>
-                  {getInitials(user?.name)}
-                </Text>
-              </View>
+              <TouchableOpacity style={styles.infoItem} onPress={() => setIsEditingTitle(true)}>
+                <Icon name="briefcase-outline" size={16} color={colors.textTertiary} style={styles.infoIcon} />
+                <Text style={styles.addText}>Add Title</Text>
+              </TouchableOpacity>
             )}
-            <TouchableOpacity 
-              style={styles.editAvatarButton}
-              onPress={handleUploadAvatar}
-            >
-              <Icon name="pencil" size={16} color={colors.textPrimary} />
-            </TouchableOpacity>
+
+            {/* Location */}
+            {isEditingLocation ? (
+              <View style={styles.inlineEditContainer}>
+                <Icon name="location-outline" size={16} color={colors.textSecondary} />
+                <TextInput
+                  style={styles.inlineInput}
+                  value={editedLocation}
+                  onChangeText={setEditedLocation}
+                  placeholder="Add your location"
+                  placeholderTextColor={colors.textTertiary}
+                />
+                <View style={styles.inlineActions}>
+                  <TouchableOpacity onPress={() => setIsEditingLocation(false)}>
+                    <Icon name="close-circle" size={20} color={colors.textSecondary} />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={handleSaveLocation}>
+                    <Icon name="checkmark-circle" size={20} color={colors.yellow} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : profile?.location ? (
+              <TouchableOpacity style={styles.infoItem} onPress={() => setIsEditingLocation(true)}>
+                <Icon name="location-outline" size={16} color={colors.textSecondary} style={styles.infoIcon} />
+                <Text style={styles.infoText}>{profile.location}</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity style={styles.infoItem} onPress={() => setIsEditingLocation(true)}>
+                <Icon name="location-outline" size={16} color={colors.textTertiary} style={styles.infoIcon} />
+                <Text style={styles.addText}>Add Location</Text>
+              </TouchableOpacity>
+            )}
           </View>
-          
-          <Text style={styles.name}>{user?.name}</Text>
-          
-          {/* Title/Experience */}
-          {isEditingTitle ? (
-            <View style={styles.inlineEditContainer}>
-              <TextInput
-                style={styles.inlineInput}
-                value={editedTitle}
-                onChangeText={setEditedTitle}
-                placeholder="Add your title/experience"
-                placeholderTextColor={colors.textTertiary}
-              />
-              <View style={styles.inlineActions}>
-                <TouchableOpacity onPress={() => setIsEditingTitle(false)}>
-                  <Icon name="close" size={20} color={colors.error} />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleSaveTitle}>
-                  <Icon name="checkmark" size={20} color={colors.success} />
-                </TouchableOpacity>
-              </View>
-            </View>
-          ) : profile?.title ? (
-            <TouchableOpacity style={styles.infoItem} onPress={() => setIsEditingTitle(true)}>
-              <Icon name="briefcase-outline" size={20} color={colors.textPrimary} style={styles.infoIcon} />
-              <Text style={styles.infoText}>{profile.title}</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity style={styles.infoItem} onPress={() => setIsEditingTitle(true)}>
-              <Icon name="briefcase-outline" size={20} color={colors.textSecondary} style={styles.infoIcon} />
-              <Text style={styles.addText}>Add Title</Text>
-            </TouchableOpacity>
-          )}
-          
-          {/* Location */}
-          {isEditingLocation ? (
-            <View style={styles.inlineEditContainer}>
-              <TextInput
-                style={styles.inlineInput}
-                value={editedLocation}
-                onChangeText={setEditedLocation}
-                placeholder="Add your location"
-                placeholderTextColor={colors.textTertiary}
-              />
-              <View style={styles.inlineActions}>
-                <TouchableOpacity onPress={() => setIsEditingLocation(false)}>
-                  <Icon name="close" size={20} color={colors.error} />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleSaveLocation}>
-                  <Icon name="checkmark" size={20} color={colors.success} />
-                </TouchableOpacity>
-              </View>
-            </View>
-          ) : profile?.location ? (
-            <TouchableOpacity style={styles.infoItem} onPress={() => setIsEditingLocation(true)}>
-              <Icon name="location-outline" size={20} color={colors.textPrimary} style={styles.infoIcon} />
-              <Text style={styles.infoText}>{profile.location}</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity style={styles.infoItem} onPress={() => setIsEditingLocation(true)}>
-              <Icon name="location-outline" size={20} color={colors.textSecondary} style={styles.infoIcon} />
-              <Text style={styles.addText}>Add Location</Text>
-            </TouchableOpacity>
-          )}
         </View>
 
         {/* About Section */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>About</Text>
+            <View style={styles.sectionHeaderLeft}>
+              <View style={styles.iconBadge}>
+                <Icon name="person-outline" size={18} color={colors.yellow} />
+              </View>
+              <Text style={styles.sectionTitle}>About</Text>
+            </View>
             <TouchableOpacity onPress={() => setIsEditingAbout(!isEditingAbout)}>
-              <Icon name="pencil" size={20} color={colors.textSecondary} />
+              <Icon name={isEditingAbout ? "close" : "create-outline"} size={20} color={colors.yellow} />
             </TouchableOpacity>
           </View>
-          
+
           {isEditingAbout ? (
-            <View>
+            <>
               <TextInput
                 style={styles.textInput}
                 value={editedAbout}
                 onChangeText={setEditedAbout}
-                placeholder="Add a description about yourself"
+                placeholder="Tell us about yourself..."
                 placeholderTextColor={colors.textTertiary}
                 multiline
                 numberOfLines={4}
@@ -357,7 +380,7 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
                   <Text style={styles.saveButton}>Save</Text>
                 </TouchableOpacity>
               </View>
-            </View>
+            </>
           ) : (
             <Text style={styles.sectionContent}>
               {profile?.about || 'No description added yet.'}
@@ -368,21 +391,25 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
         {/* Skills Section */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Skills</Text>
+            <View style={styles.sectionHeaderLeft}>
+              <View style={styles.iconBadge}>
+                <Icon name="bulb-outline" size={18} color={colors.yellow} />
+              </View>
+              <Text style={styles.sectionTitle}>Skills</Text>
+            </View>
             <TouchableOpacity onPress={() => setIsEditingSkills(!isEditingSkills)}>
-              <Icon name="pencil" size={20} color={colors.textSecondary} />
+              <Icon name={isEditingSkills ? "close" : "create-outline"} size={20} color={colors.yellow} />
             </TouchableOpacity>
           </View>
-          
+
           {isEditingSkills ? (
-            <View>
+            <>
               <TextInput
-                style={styles.textInput}
+                style={[styles.textInput, styles.phoneInput]}
                 value={editedSkills}
                 onChangeText={setEditedSkills}
                 placeholder="Enter skills separated by commas"
                 placeholderTextColor={colors.textTertiary}
-                multiline
               />
               <View style={styles.editActions}>
                 <TouchableOpacity onPress={() => setIsEditingSkills(false)}>
@@ -392,7 +419,7 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
                   <Text style={styles.saveButton}>Save</Text>
                 </TouchableOpacity>
               </View>
-            </View>
+            </>
           ) : (
             <View style={styles.skillsContainer}>
               {profile?.skills && profile.skills.length > 0 ? (
@@ -411,39 +438,48 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
         {/* Resume Section */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Resume</Text>
+            <View style={styles.sectionHeaderLeft}>
+              <View style={styles.iconBadge}>
+                <Icon name="document-text-outline" size={18} color={colors.yellow} />
+              </View>
+              <Text style={styles.sectionTitle}>Resume</Text>
+            </View>
             <TouchableOpacity onPress={handleUploadResume}>
               <Icon name="add-circle" size={24} color={colors.yellow} />
             </TouchableOpacity>
           </View>
-          
+
           {profile?.resumes && profile.resumes.length > 0 ? (
             <View style={styles.resumeList}>
               {profile.resumes.map((resume, index) => (
-                <View key={resume._id || index} style={styles.resumeItem}>
-                  <TouchableOpacity 
-                    style={styles.resumeInfo}
-                    onPress={() => handleOpenResume(resume.url)}
-                  >
-                    <Icon name="document-text" size={24} color={colors.yellow} />
+                <TouchableOpacity
+                  key={index}
+                  style={styles.resumeItem}
+                  onPress={() => handleOpenResume(resume.url)}>
+                  <View style={styles.resumeInfo}>
+                    <View style={styles.resumeIconWrapper}>
+                      <Icon name="document" size={24} color={colors.yellow} />
+                    </View>
                     <View style={styles.resumeDetails}>
-                      <Text style={styles.resumeName} numberOfLines={1}>
-                        {resume.name || 'Resume.pdf'}
-                      </Text>
+                      <Text style={styles.resumeName}>{resume.name || 'Resume.pdf'}</Text>
                       <Text style={styles.resumeDate}>
                         {new Date(resume.uploadedAt).toLocaleDateString()}
                       </Text>
                     </View>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => handleDeleteResume(resume._id)}>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => resume._id && handleDeleteResume(resume._id)}
+                    hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
                     <Icon name="trash-outline" size={20} color={colors.error} />
                   </TouchableOpacity>
-                </View>
+                </TouchableOpacity>
               ))}
             </View>
           ) : (
             <View style={styles.emptyState}>
-              <Icon name="document-outline" size={48} color={colors.textTertiary} />
+              <View style={styles.emptyIconWrapper}>
+                <Icon name="document-outline" size={48} color={colors.textTertiary} />
+              </View>
               <Text style={styles.emptyStateText}>No resumes uploaded yet</Text>
               <Text style={styles.emptyStateSubtext}>
                 Tap the + icon to upload your resume
@@ -455,14 +491,19 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
         {/* Contact Information Section */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Contact Information</Text>
+            <View style={styles.sectionHeaderLeft}>
+              <View style={styles.iconBadge}>
+                <Icon name="call-outline" size={18} color={colors.yellow} />
+              </View>
+              <Text style={styles.sectionTitle}>Contact Information</Text>
+            </View>
             <TouchableOpacity onPress={() => setIsEditingContact(!isEditingContact)}>
-              <Icon name="pencil" size={20} color={colors.textSecondary} />
+              <Icon name={isEditingContact ? "close" : "create-outline"} size={20} color={colors.yellow} />
             </TouchableOpacity>
           </View>
-          
+
           {isEditingContact ? (
-            <View>
+            <>
               <View style={styles.contactRow}>
                 <Text style={styles.contactLabel}>EMAIL</Text>
                 <Text style={styles.contactValue}>{user?.email}</Text>
@@ -473,7 +514,7 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
                   style={[styles.textInput, styles.phoneInput]}
                   value={editedPhone}
                   onChangeText={setEditedPhone}
-                  placeholder="Add Phone Number"
+                  placeholder="Enter phone number"
                   placeholderTextColor={colors.textTertiary}
                   keyboardType="phone-pad"
                 />
@@ -486,25 +527,63 @@ export const UserProfileScreen: React.FC<any> = ({navigation}) => {
                   <Text style={styles.saveButton}>Save</Text>
                 </TouchableOpacity>
               </View>
-            </View>
+            </>
           ) : (
-            <View>
+            <>
               <View style={styles.contactRow}>
                 <Text style={styles.contactLabel}>EMAIL</Text>
-                <Text style={styles.contactValue}>{user?.email}</Text>
+                <View style={styles.contactValueRow}>
+                  <Icon name="mail-outline" size={16} color={colors.textSecondary} style={styles.contactIcon} />
+                  <Text style={styles.contactValue}>{user?.email}</Text>
+                </View>
               </View>
               <View style={styles.contactRow}>
                 <Text style={styles.contactLabel}>PHONE</Text>
-                <Text style={styles.contactValue}>
-                  {profile?.phone || 'Add Phone Number'}
-                </Text>
+                <View style={styles.contactValueRow}>
+                  <Icon name="call-outline" size={16} color={colors.textSecondary} style={styles.contactIcon} />
+                  <Text style={styles.contactValue}>
+                    {profile?.phone || 'Add Phone Number'}
+                  </Text>
+                </View>
               </View>
-            </View>
+            </>
           )}
         </View>
 
+        {/* Activity Section */}
+        <View style={styles.activitySection}>
+          <Text style={styles.activityTitle}>Activity</Text>
+          
+          <TouchableOpacity
+            style={styles.activityCard}
+            onPress={() => navigation.navigate('SavedJobsList')}>
+            <View style={styles.activityIconWrapper}>
+              <Icon name="bookmark" size={24} color={colors.yellow} />
+            </View>
+            <View style={styles.activityContent}>
+              <Text style={styles.activityCardTitle}>Saved Jobs</Text>
+              <Text style={styles.activityCardSubtitle}>View your bookmarked opportunities</Text>
+            </View>
+            <Icon name="chevron-forward" size={20} color={colors.textTertiary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.activityCard}
+            onPress={() => navigation.navigate('ApplicationsList')}>
+            <View style={styles.activityIconWrapper}>
+              <Icon name="briefcase" size={24} color={colors.yellow} />
+            </View>
+            <View style={styles.activityContent}>
+              <Text style={styles.activityCardTitle}>My Applications</Text>
+              <Text style={styles.activityCardSubtitle}>Track your application status</Text>
+            </View>
+            <Icon name="chevron-forward" size={20} color={colors.textTertiary} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Icon name="log-out-outline" size={24} color={colors.error} />
+          <Icon name="log-out-outline" size={20} color={colors.error} />
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -518,63 +597,86 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   content: {
-    padding: spacing.md,
+    flex: 1,
+    paddingBottom: spacing.xl * 4,
   },
   header: {
-    alignItems: 'center',
     backgroundColor: colors.backgroundSecondary,
-    borderRadius: borderRadius.lg,
-    padding: spacing.xl,
-    marginBottom: spacing.md,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.xl * 1.5,
+    marginBottom: spacing.lg,
+  },
+  avatarSection: {
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
   },
   avatarWrapper: {
     position: 'relative',
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 110,
+    height: 110,
+    borderRadius: 55,
     backgroundColor: colors.yellow,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 3,
+    borderWidth: 4,
     borderColor: colors.white,
+    shadowColor: colors.navyDark,
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
   },
   avatarText: {
     ...typography.h1,
-    fontSize: 40,
+    fontSize: 44,
     color: colors.navyDark,
+    fontWeight: '700',
   },
   avatarImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    borderWidth: 3,
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    borderWidth: 4,
     borderColor: colors.white,
+    shadowColor: colors.navyDark,
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
   },
   editAvatarButton: {
     position: 'absolute',
-    bottom: 0,
-    right: 0,
+    bottom: 2,
+    right: 2,
     backgroundColor: colors.yellow,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: colors.white,
+    shadowColor: colors.navyDark,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   name: {
     ...typography.h3,
+    fontSize: 26,
     color: colors.textPrimary,
     marginBottom: spacing.md,
+    fontWeight: '700',
   },
   infoItem: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: spacing.xs,
+    paddingVertical: spacing.xs,
   },
   infoIcon: {
     marginRight: spacing.sm,
@@ -582,16 +684,25 @@ const styles = StyleSheet.create({
   infoText: {
     ...typography.body1,
     color: colors.textPrimary,
+    fontSize: 15,
   },
   addText: {
     ...typography.body1,
-    color: colors.textSecondary,
+    color: colors.textTertiary,
+    fontSize: 15,
+    fontStyle: 'italic',
   },
   sectionCard: {
-    backgroundColor: colors.backgroundSecondary,
-    borderRadius: borderRadius.lg,
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.xl,
     padding: spacing.lg,
+    marginHorizontal: spacing.md,
     marginBottom: spacing.md,
+    shadowColor: colors.navyDark,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -599,14 +710,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.md,
   },
+  sectionHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  iconBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.backgroundTertiary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   sectionTitle: {
     ...typography.h5,
+    fontSize: 18,
     color: colors.textPrimary,
+    fontWeight: '700',
   },
   sectionContent: {
     ...typography.body2,
     color: colors.textSecondary,
-    lineHeight: 22,
+    lineHeight: 24,
+    fontSize: 15,
   },
   skillsContainer: {
     flexDirection: 'row',
@@ -617,13 +744,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.backgroundTertiary,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderRadius: borderRadius.md,
-    marginRight: spacing.sm,
-    marginBottom: spacing.sm,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.yellow + '20',
   },
   skillText: {
     ...typography.body2,
     color: colors.textPrimary,
+    fontWeight: '600',
+    fontSize: 14,
   },
   contactRow: {
     marginBottom: spacing.md,
@@ -631,29 +760,42 @@ const styles = StyleSheet.create({
   contactLabel: {
     ...typography.caption,
     color: colors.textTertiary,
-    marginBottom: spacing.xs,
-    fontWeight: '600',
+    marginBottom: spacing.sm,
+    fontWeight: '700',
+    fontSize: 11,
+    letterSpacing: 0.5,
+  },
+  contactValueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  contactIcon: {
+    marginRight: spacing.sm,
   },
   contactValue: {
     ...typography.body1,
     color: colors.textPrimary,
+    fontSize: 15,
   },
   textInput: {
     backgroundColor: colors.backgroundTertiary,
-    borderRadius: borderRadius.md,
+    borderRadius: borderRadius.lg,
     padding: spacing.md,
     ...typography.body1,
     color: colors.textPrimary,
-    minHeight: 50,
+    minHeight: 100,
     textAlignVertical: 'top',
+    borderWidth: 1,
+    borderColor: colors.yellow + '30',
+    fontSize: 15,
   },
   phoneInput: {
-    minHeight: 44,
+    minHeight: 50,
   },
   editActions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    gap: spacing.md,
+    gap: spacing.lg,
     marginTop: spacing.md,
   },
   cancelButton: {
@@ -661,52 +803,41 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
+    fontSize: 15,
+    fontWeight: '600',
   },
   saveButton: {
     ...typography.body1,
     color: colors.yellow,
-    fontWeight: '600',
+    fontWeight: '700',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-  },
-  logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: spacing.md,
-    backgroundColor: colors.card,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.error,
-    gap: spacing.sm,
-    marginTop: spacing.lg,
-    marginBottom: spacing.xl,
-  },
-  logoutText: {
-    ...typography.button,
-    color: colors.error,
+    fontSize: 15,
   },
   inlineEditContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.xs,
     backgroundColor: colors.backgroundTertiary,
-    borderRadius: borderRadius.md,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.lg,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    gap: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.yellow + '30',
   },
   inlineInput: {
     flex: 1,
     ...typography.body1,
     color: colors.textPrimary,
     paddingVertical: spacing.xs,
+    fontSize: 15,
   },
   inlineActions: {
     flexDirection: 'row',
     gap: spacing.sm,
   },
   resumeList: {
-    gap: spacing.md,
+    gap: spacing.sm,
   },
   resumeItem: {
     flexDirection: 'row',
@@ -714,13 +845,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: colors.backgroundTertiary,
     padding: spacing.md,
-    borderRadius: borderRadius.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.yellow + '15',
   },
   resumeInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
     gap: spacing.md,
+  },
+  resumeIconWrapper: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.yellow + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   resumeDetails: {
     flex: 1,
@@ -729,25 +870,113 @@ const styles = StyleSheet.create({
     ...typography.body1,
     color: colors.textPrimary,
     fontWeight: '600',
-    marginBottom: spacing.xs,
+    marginBottom: spacing.xs / 2,
+    fontSize: 15,
   },
   resumeDate: {
     ...typography.caption,
     color: colors.textTertiary,
+    fontSize: 13,
   },
   emptyState: {
     alignItems: 'center',
     paddingVertical: spacing.xl,
   },
+  emptyIconWrapper: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.backgroundTertiary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
   emptyStateText: {
     ...typography.body1,
     color: colors.textSecondary,
-    marginTop: spacing.md,
+    marginTop: spacing.sm,
+    fontSize: 15,
+    fontWeight: '600',
   },
   emptyStateSubtext: {
     ...typography.caption,
     color: colors.textTertiary,
     marginTop: spacing.xs,
     textAlign: 'center',
+    fontSize: 13,
+  },
+  activitySection: {
+    paddingHorizontal: spacing.md,
+    marginTop: spacing.sm,
+  },
+  activityTitle: {
+    ...typography.h5,
+    fontSize: 18,
+    color: colors.textPrimary,
+    fontWeight: '700',
+    marginBottom: spacing.md,
+    paddingHorizontal: spacing.xs,
+  },
+  activityCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    padding: spacing.lg,
+    borderRadius: borderRadius.xl,
+    marginBottom: spacing.sm,
+    shadowColor: colors.navyDark,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  activityIconWrapper: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.yellow + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.md,
+  },
+  activityContent: {
+    flex: 1,
+  },
+  activityCardTitle: {
+    ...typography.body1,
+    fontSize: 16,
+    color: colors.textPrimary,
+    fontWeight: '700',
+    marginBottom: spacing.xs / 2,
+  },
+  activityCardSubtitle: {
+    ...typography.caption,
+    fontSize: 13,
+    color: colors.textSecondary,
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.lg,
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.xl,
+    borderWidth: 1.5,
+    borderColor: colors.error + '30',
+    gap: spacing.sm,
+    marginTop: spacing.xl,
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.xl * 2,
+    shadowColor: colors.error,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  logoutText: {
+    ...typography.button,
+    color: colors.error,
+    fontWeight: '700',
+    fontSize: 16,
   },
 });
