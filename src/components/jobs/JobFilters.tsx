@@ -2,7 +2,7 @@
 // JOB FILTERS COMPONENT
 // ============================================
 
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -12,13 +12,13 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {colors} from '../../theme/colors';
-import {spacing, borderRadius} from '../../theme/spacing';
-import {typography} from '../../theme/typography';
-import {Button} from '../common/Button';
-import {Input} from '../common/Input';
-import {JOB_TYPES, EXPERIENCE_LEVELS} from '../../utils/constants';
-import {JobFilters} from '../../types';
+import { colors } from '../../theme/colors';
+import { spacing, borderRadius } from '../../theme/spacing';
+import { typography } from '../../theme/typography';
+import { Button } from '../common/Button';
+import { Input } from '../common/Input';
+import { JOB_TYPES, EXPERIENCE_LEVELS } from '../../utils/constants';
+import { JobFilters } from '../../types';
 
 interface JobFiltersProps {
   visible: boolean;
@@ -108,7 +108,7 @@ export const JobFiltersComponent: React.FC<JobFiltersProps> = ({
                     style={[
                       styles.optionText,
                       filters.experience === level.value &&
-                        styles.optionTextSelected,
+                      styles.optionTextSelected,
                     ]}>
                     {level.label}
                   </Text>
@@ -120,7 +120,7 @@ export const JobFiltersComponent: React.FC<JobFiltersProps> = ({
               label="Location"
               placeholder="Enter location"
               value={filters.location || ''}
-              onChangeText={text => setFilters({...filters, location: text})}
+              onChangeText={text => setFilters({ ...filters, location: text })}
             />
           </ScrollView>
 
@@ -196,16 +196,18 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   optionSelected: {
-    backgroundColor: colors.yellow,
-    borderColor: colors.yellow,
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   optionText: {
     ...typography.body2,
     color: colors.textPrimary,
   },
   optionTextSelected: {
-    color: colors.navyDark,
+    color: colors.white,
+    fontWeight: '700',
   },
+
   footer: {
     flexDirection: 'row',
     padding: spacing.md,

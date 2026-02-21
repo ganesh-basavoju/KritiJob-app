@@ -1,61 +1,66 @@
-// ============================================
-// THEME COLORS
-// ============================================
-
 export const colors = {
-  // Primary
-  primary: '#FFC107',
-  primaryDark: '#FFA000',
-  primaryLight: '#FFD54F',
+  // Primary (Professional Blue)
+  primary: '#0A66C2',
+  primaryDark: '#004182',
+  primaryLight: '#378fe9',
 
-  // Background
-  background: '#0A1628',
-  backgroundSecondary: '#162238',
-  backgroundTertiary: '#1E2F47',
+  // Secondary/Accent (White/Neutral focused)
+  secondary: '#FFFFFF',
+  secondaryDark: '#F3F2EF',
+  secondaryLight: '#E7F3FF',
 
-  // Navy Blue shades
-  navyDark: '#0A1628',
-  navyMedium: '#162238',
-  navyLight: '#1E2F47',
+  // Specialized Interactive Colors
+  glow: '#10B981', // Vivid Green reserved for 'glow' effects
+  hover: '#004182',
 
-  // Yellow accent
-  yellow: '#FFC107',
-  yellowLight: '#FFD54F',
-  yellowDark: '#FFA000',
+  // Backgrounds
+  background: '#F3F2EF',
+  surface: '#FFFFFF',
+  backgroundSecondary: '#FFFFFF',
+  backgroundTertiary: '#EBEBEB',
+
+  // Colors for specific use cases
+  blue: '#0A66C2',
+  green: '#10B981',
+  yellow: '#0A66C2', // Defaulting previous yellows to Blue
 
   // Text
-  textPrimary: '#FFFFFF',
-  textSecondary: '#B0BEC5',
-  textTertiary: '#78909C',
-  textDisabled: '#546E7A',
+  textPrimary: '#191919',
+  textSecondary: '#666666',
+  textTertiary: '#919191',
+  textDisabled: '#D1D5DB',
 
   // Status
-  success: '#4CAF50',
-  error: '#F44336',
-  warning: '#FF9800',
-  info: '#2196F3',
+  success: '#10B981',
+  error: '#CC1016',
+  warning: '#F59E0B',
+  info: '#0A66C2',
 
   // UI Elements
-  border: '#263238',
-  divider: '#37474F',
-  shadow: '#000000',
-  overlay: 'rgba(0, 0, 0, 0.7)',
+  border: '#E0E0E0',
+  divider: '#EBEBEB',
+  shadow: 'rgba(0, 0, 0, 0.08)',
+  overlay: 'rgba(0, 0, 0, 0.6)',
 
   // Card
-  card: '#162238',
-  cardHover: '#1E2F47',
+  card: '#FFFFFF',
+  cardHover: '#F9FAFB',
 
   // Input
-  inputBackground: '#1E2F47',
-  inputBorder: '#37474F',
-  inputPlaceholder: '#78909C',
+  inputBackground: '#F3F2EF',
+  inputBorder: '#E0E0E0',
+  inputPlaceholder: '#666666',
 
   // Button
-  buttonPrimary: '#FFC107',
-  buttonSecondary: '#1E2F47',
-  buttonDisabled: '#37474F',
+  buttonPrimary: '#0A66C2',
+  buttonSecondary: '#FFFFFF',
+  buttonDisabled: '#E5E7EB',
 
-  // White & Black
+  // Neutrals
   white: '#FFFFFF',
   black: '#000000',
+  navyDark: '#004182',
 };
+
+
+

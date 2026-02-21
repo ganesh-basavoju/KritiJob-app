@@ -2,24 +2,24 @@
 // JOB DETAILS SCREEN
 // ============================================
 
-import React, {useEffect, useState} from 'react';
-import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {useDispatch, useSelector} from 'react-redux';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {fetchJobById, saveJob, unsaveJob, addAppliedJobId} from '../../redux/slices/jobsSlice';
-import {applyForJob} from '../../redux/slices/applicationsSlice';
-import {fetchCandidateProfile} from '../../redux/slices/candidateSlice';
-import {AppDispatch, RootState} from '../../redux/store';
-import {Button} from '../../components/common/Button';
-import {Loader} from '../../components/common/Loader';
-import {ErrorText} from '../../components/common/ErrorText';
-import {colors} from '../../theme/colors';
-import {spacing, borderRadius} from '../../theme/spacing';
-import {typography} from '../../theme/typography';
-import {formatDate} from '../../utils/dateFormatter';
-import {jobsApi} from '../../api/jobs.api';
-import {applicationsApi} from '../../api/applications.api';
+import { useDispatch, useSelector } from 'react-redux';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { fetchJobById, saveJob, unsaveJob, addAppliedJobId } from '../../redux/slices/jobsSlice';
+import { applyForJob } from '../../redux/slices/applicationsSlice';
+import { fetchCandidateProfile } from '../../redux/slices/candidateSlice';
+import { AppDispatch, RootState } from '../../redux/store';
+import { Button } from '../../components/common/Button';
+import { Loader } from '../../components/common/Loader';
+import { ErrorText } from '../../components/common/ErrorText';
+import { colors } from '../../theme/colors';
+import { spacing, borderRadius } from '../../theme/spacing';
+import { typography } from '../../theme/typography';
+import { formatDate } from '../../utils/dateFormatter';
+import { jobsApi } from '../../api/jobs.api';
+import { applicationsApi } from '../../api/applications.api';
 
 // Helper function to strip HTML tags
 const stripHtmlTags = (html: string): string => {
@@ -35,25 +35,28 @@ const stripHtmlTags = (html: string): string => {
     .trim();
 };
 
-export const JobDetailsScreen: React.FC<any> = ({navigation, route}) => {
-  const {jobId} = route.params;
+export const JobDetailsScreen: React.FC<any> = ({ navigation, route }) => {
+  const { jobId } = route.params;
   const dispatch = useDispatch<AppDispatch>();
-  const {currentJob, currentJobLoading} = useSelector((state: RootState) => state.jobs);
-  const {loading: applyLoading} = useSelector((state: RootState) => state.applications);
-  const {profile} = useSelector((state: RootState) => state.candidate);
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { currentJob, currentJobLoading } = useSelector((state: RootState) => state.jobs);
+  const { loading: applyLoading } = useSelector((state: RootState) => state.applications);
+  const { profile } = useSelector((state: RootState) => state.candidate);
   const [isSaved, setIsSaved] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
       await loadJobDetails();
-      await checkSavedStatus();
-      await checkApplicationStatus();
-      await dispatch(fetchCandidateProfile());
+      if (isAuthenticated) {
+        await checkSavedStatus();
+        await checkApplicationStatus();
+        await dispatch(fetchCandidateProfile());
+      }
     };
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [jobId]);
+  }, [jobId, isAuthenticated]);
 
   const loadJobDetails = async () => {
     await dispatch(fetchJobById(jobId));
@@ -78,6 +81,13 @@ export const JobDetailsScreen: React.FC<any> = ({navigation, route}) => {
   };
 
   const handleSaveToggle = async () => {
+    if (!isAuthenticated) {
+      Alert.alert('Authentication Required', 'Please login to save this job.', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Login', onPress: () => navigation.navigate('Auth') },
+      ]);
+      return;
+    }
     if (isSaved) {
       await dispatch(unsaveJob(jobId));
       setIsSaved(false);
@@ -88,6 +98,13 @@ export const JobDetailsScreen: React.FC<any> = ({navigation, route}) => {
   };
 
   const handleApply = () => {
+    if (!isAuthenticated) {
+      Alert.alert('Authentication Required', 'Please login to apply for this job.', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Login', onPress: () => navigation.navigate('Auth') },
+      ]);
+      return;
+    }
     // Check if user has uploaded a resume
     let resumeUrl = null;
     if (profile) {
@@ -99,32 +116,28 @@ export const JobDetailsScreen: React.FC<any> = ({navigation, route}) => {
       else if (profile.resumes && Array.isArray(profile.resumes) && profile.resumes.length > 0) {
         resumeUrl = profile.resumes[0].url;
       }
-      // Check legacy resume field
-      else if (profile.resume) {
-        resumeUrl = profile.resume;
-      }
     }
-    
+
     if (!resumeUrl) {
       Alert.alert(
         'Resume Required',
         'Please upload a resume to your profile before applying for jobs.',
         [
-          {text: 'Cancel', style: 'cancel'},
-          {text: 'Go to Profile', onPress: () => navigation.navigate('Profile')},
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Go to Profile', onPress: () => navigation.navigate('Profile') },
         ]
       );
       return;
     }
 
     Alert.alert('Apply for Job', 'Do you want to apply for this position?', [
-      {text: 'Cancel', style: 'cancel'},
-      {text: 'Apply', onPress: () => submitApplication(resumeUrl)},
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Apply', onPress: () => submitApplication(resumeUrl) },
     ]);
   };
 
   const submitApplication = async (resumeUrl: string) => {
-    const result: any = await dispatch(applyForJob({jobId, coverLetter: '', resumeUrl}));
+    const result: any = await dispatch(applyForJob({ jobId, coverLetter: '', resumeUrl }));
     if (result.meta && result.meta.requestStatus === 'fulfilled') {
       setHasApplied(true);
       dispatch(addAppliedJobId(jobId)); // Update Redux state to remove from feed/saved
@@ -166,14 +179,17 @@ export const JobDetailsScreen: React.FC<any> = ({navigation, route}) => {
 
         <View style={styles.detailsRow}>
           <View style={styles.detailItem}>
+            <Icon name="location-outline" size={16} color={colors.primary} />
             <Text style={styles.detailLabel}>Location</Text>
             <Text style={styles.detailValue}>{currentJob.location}</Text>
           </View>
           <View style={styles.detailItem}>
+            <Icon name="briefcase-outline" size={16} color={colors.primary} />
             <Text style={styles.detailLabel}>Type</Text>
             <Text style={styles.detailValue}>{currentJob.type}</Text>
           </View>
           <View style={styles.detailItem}>
+            <Icon name="time-outline" size={16} color={colors.primary} />
             <Text style={styles.detailLabel}>Experience</Text>
             <Text style={styles.detailValue}>{(currentJob as any).experienceLevel || currentJob.experience}</Text>
           </View>
@@ -181,7 +197,7 @@ export const JobDetailsScreen: React.FC<any> = ({navigation, route}) => {
 
         {(currentJob as any).deadline && (
           <View style={styles.deadlineContainer}>
-            <Icon name="time-outline" size={20} color={colors.warning} />
+            <Icon name="alarm-outline" size={20} color={colors.primary} />
             <View style={styles.deadlineTextContainer}>
               <Text style={styles.deadlineLabel}>Application Deadline</Text>
               <Text style={styles.deadlineValue}>{formatDate((currentJob as any).deadline)}</Text>
@@ -191,8 +207,11 @@ export const JobDetailsScreen: React.FC<any> = ({navigation, route}) => {
 
         {((currentJob as any).salaryRange || currentJob.salary) && (
           <View style={styles.salaryContainer}>
-            <Text style={styles.salaryLabel}>Salary Range</Text>
-            <Text style={styles.salaryValue}>{(currentJob as any).salaryRange || currentJob.salary}</Text>
+            <Icon name="cash-outline" size={20} color={colors.primary} />
+            <View style={{ marginLeft: spacing.sm }}>
+              <Text style={styles.salaryLabel}>Salary Range</Text>
+              <Text style={styles.salaryValue}>{(currentJob as any).salaryRange || currentJob.salary}</Text>
+            </View>
           </View>
         )}
 
@@ -217,19 +236,13 @@ export const JobDetailsScreen: React.FC<any> = ({navigation, route}) => {
           <Text style={styles.companyName}>{(currentJob as any).companyId?.name || currentJob.company?.name}</Text>
           <Text style={styles.companyDescription}>{stripHtmlTags((currentJob as any).companyId?.description || currentJob.company?.description || '')}</Text>
           <View style={styles.companyDetailRow}>
-            <Icon name="location-outline" size={16} color={colors.textSecondary} />
+            <Icon name="location-outline" size={16} color={colors.primary} />
             <Text style={styles.companyDetail}>{(currentJob as any).companyId?.location || currentJob.company?.location}</Text>
           </View>
-          {((currentJob as any).companyId?.size || currentJob.company?.size) && (
+          {((currentJob as any).companyId?.employeesCount || currentJob.company?.employeesCount) && (
             <View style={styles.companyDetailRow}>
-              <Icon name="people-outline" size={16} color={colors.textSecondary} />
-              <Text style={styles.companyDetail}>{(currentJob as any).companyId?.size || currentJob.company?.size}</Text>
-            </View>
-          )}
-          {((currentJob as any).companyId?.industry || currentJob.company?.industry) && (
-            <View style={styles.companyDetailRow}>
-              <Icon name="business-outline" size={16} color={colors.textSecondary} />
-              <Text style={styles.companyDetail}>{(currentJob as any).companyId?.industry || currentJob.company?.industry}</Text>
+              <Icon name="people-outline" size={16} color={colors.primary} />
+              <Text style={styles.companyDetail}>{(currentJob as any).companyId?.employeesCount || currentJob.company?.employeesCount}</Text>
             </View>
           )}
         </View>
@@ -242,10 +255,10 @@ export const JobDetailsScreen: React.FC<any> = ({navigation, route}) => {
 
       <View style={styles.applyContainer}>
         {hasApplied ? (
-          <Button title="Applied" disabled onPress={() => {}} style={styles.applyButton} />
+          <Button title="Already Applied" disabled onPress={() => { }} style={styles.applyButton} />
         ) : (
           <Button
-            title="Apply Now"
+            title={isAuthenticated ? "Apply Now" : "Login to Apply"}
             onPress={handleApply}
             loading={applyLoading}
             style={styles.applyButton}
@@ -277,11 +290,14 @@ const styles = StyleSheet.create({
   title: {
     ...typography.h3,
     color: colors.textPrimary,
+    fontSize: 26,
+    fontWeight: '800',
     marginBottom: spacing.xs,
   },
   company: {
     ...typography.h6,
-    color: colors.textSecondary,
+    color: colors.primary,
+    fontWeight: '700',
   },
   saveIcon: {
     fontSize: 32,
@@ -290,28 +306,36 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: spacing.lg,
+    backgroundColor: colors.white,
+    padding: spacing.md,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   detailItem: {
     flex: 1,
+    alignItems: 'center',
   },
   detailLabel: {
     ...typography.caption,
     color: colors.textTertiary,
-    marginBottom: spacing.xs,
+    marginTop: 4,
+    marginBottom: 2,
   },
   detailValue: {
-    ...typography.body1,
+    ...typography.body2,
     color: colors.textPrimary,
+    fontWeight: '700',
   },
   deadlineContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.warning + '15',
+    backgroundColor: colors.secondaryLight,
     padding: spacing.md,
-    borderRadius: borderRadius.md,
+    borderRadius: 16,
     marginBottom: spacing.lg,
-    borderLeftWidth: 4,
-    borderLeftColor: colors.warning,
+    borderWidth: 1,
+    borderColor: colors.primary + '20',
   },
   deadlineTextContainer: {
     marginLeft: spacing.sm,
@@ -319,31 +343,37 @@ const styles = StyleSheet.create({
   },
   deadlineLabel: {
     ...typography.caption,
-    color: colors.warning,
+    color: colors.textSecondary,
     fontWeight: '600',
     textTransform: 'uppercase',
-    marginBottom: spacing.xs,
+    marginBottom: 2,
   },
   deadlineValue: {
     ...typography.body1,
-    color: colors.textPrimary,
-    fontWeight: '700',
+    color: colors.primary,
+    fontWeight: '800',
   },
   salaryContainer: {
-    backgroundColor: colors.card,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
     padding: spacing.md,
-    borderRadius: borderRadius.md,
+    borderRadius: 16,
     marginBottom: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   salaryLabel: {
     ...typography.caption,
-    color: colors.textTertiary,
-    marginBottom: spacing.xs,
+    color: colors.textSecondary,
+    marginBottom: 2,
   },
   salaryValue: {
     ...typography.h4,
-    color: colors.yellow,
+    color: colors.primary,
+    fontWeight: '800',
   },
+
   section: {
     marginBottom: spacing.lg,
   },

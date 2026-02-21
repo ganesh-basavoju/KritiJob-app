@@ -2,7 +2,7 @@
 // LOGIN SCREEN
 // ============================================
 
-import React, {useState} from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -11,157 +11,131 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Modal,
 } from 'react-native';
-import {useDispatch, useSelector} from 'react-redux';
-import {useForm, Controller} from 'react-hook-form';
-import {login} from '../../redux/slices/authSlice';
-import {AppDispatch, RootState} from '../../redux/store';
-import {Button} from '../../components/common/Button';
-import {Input} from '../../components/common/Input';
-import {ErrorText} from '../../components/common/ErrorText';
-import {colors} from '../../theme/colors';
-import {spacing} from '../../theme/spacing';
-import {typography} from '../../theme/typography';
-import {validateEmail, validatePassword} from '../../utils/validation';
+import { LoginForm } from '../../components/auth/LoginForm';
+import { colors } from '../../theme/colors';
+import { spacing } from '../../theme/spacing';
+import { typography } from '../../theme/typography';
 
-export const LoginScreen: React.FC<any> = ({navigation}) => {
-  const dispatch = useDispatch<AppDispatch>();
-  const {loading, error} = useSelector((state: RootState) => state.auth);
-  const {control, handleSubmit} = useForm();
-
-  const onSubmit = async (data: any) => {
-    await dispatch(login({email: data.email, password: data.password}));
-  };
-
+export const LoginScreen: React.FC<any> = ({
+  navigation,
+  visible = true,
+  onClose,
+}) => {
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <Text style={styles.logo}>KritiJob</Text>
-          <Text style={styles.subtitle}>Find your dream job</Text>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      statusBarTranslucent
+    >
+      <KeyboardAvoidingView
+        style={styles.modalOverlay}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <TouchableOpacity
+          style={styles.backdrop}
+          activeOpacity={1}
+          onPress={onClose}
+        />
+
+        <View style={styles.modalCard}>
+          <ScrollView contentContainerStyle={styles.scrollContent}>
+            <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
+              <Text style={styles.closeText}>✕</Text>
+            </TouchableOpacity>
+
+            <View style={styles.header}>
+              <Text style={styles.logo}>KritiJob</Text>
+              <Text style={styles.subtitle}>Find your dream job</Text>
+            </View>
+
+            <LoginForm
+              onSuccess={() => {
+                // Success logic if any, though login slice handles navigation via AppNavigator usually
+                // but in this app it seems we just want to close the modal if it's a modal
+                onClose?.();
+              }}
+              onRegisterPress={() => {
+                onClose?.();
+                navigation.navigate('Auth', { screen: 'RoleSelection' });
+              }}
+              onForgotPasswordPress={() => {
+                onClose?.();
+                navigation.navigate('Auth', { screen: 'ForgotPassword' });
+              }}
+
+            />
+          </ScrollView>
         </View>
-
-        <View style={styles.form}>
-          <Controller
-            control={control}
-            name="email"
-            rules={{
-              required: 'Email is required',
-              validate: value =>
-                validateEmail(value) || 'Invalid email address',
-            }}
-            render={({field: {onChange, value}, fieldState: {error}}) => (
-              <Input
-                label="Email"
-                placeholder="Enter your email"
-                value={value}
-                onChangeText={onChange}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                error={error?.message}
-              />
-            )}
-          />
-
-          <Controller
-            control={control}
-            name="password"
-            rules={{
-              required: 'Password is required',
-              validate: value =>
-                validatePassword(value) ||
-                'Password must be at least 6 characters',
-            }}
-            render={({field: {onChange, value}, fieldState: {error}}) => (
-              <Input
-                label="Password"
-                placeholder="Enter your password"
-                value={value}
-                onChangeText={onChange}
-                secureTextEntry
-                error={error?.message}
-              />
-            )}
-          />
-
-          {error && <ErrorText message={error} />}
-
-          <TouchableOpacity
-            style={styles.forgotPasswordLink}
-            onPress={() => navigation.navigate('ForgotPassword')}>
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-          </TouchableOpacity>
-
-          <Button
-            title="Login"
-            onPress={handleSubmit(onSubmit)}
-            loading={loading}
-            style={styles.loginButton}
-          />
-
-          <TouchableOpacity
-            style={styles.registerLink}
-            onPress={() => navigation.navigate('RoleSelection')}>
-            <Text style={styles.registerText}>
-              Don't have an account?{' '}
-              <Text style={styles.registerTextBold}>Sign up</Text>
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  modalOverlay: {
     flex: 1,
+    justifyContent: 'center',
+    padding: spacing.xl,
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  modalCard: {
     backgroundColor: colors.background,
+    borderRadius: 32,
+    maxHeight: '90%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.15,
+    shadowRadius: 30,
+    elevation: 15,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.divider,
   },
   scrollContent: {
-    flexGrow: 1,
+    padding: spacing.xl,
+  },
+  closeBtn: {
+    position: 'absolute',
+    top: spacing.lg,
+    right: spacing.lg,
+    zIndex: 1,
+    backgroundColor: colors.backgroundSecondary,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
-    padding: spacing.lg,
+    alignItems: 'center',
+  },
+  closeText: {
+    color: colors.textPrimary,
+    fontSize: 18,
+    fontWeight: '300',
   },
   header: {
     alignItems: 'center',
     marginBottom: spacing.xl,
+    marginTop: spacing.md,
   },
   logo: {
     ...typography.h1,
-    color: colors.yellow,
-    marginBottom: spacing.sm,
+    color: colors.primary,
+    marginBottom: spacing.xs,
+    fontSize: 36,
+    fontWeight: '800',
   },
   subtitle: {
-    ...typography.body1,
-    color: colors.textSecondary,
-  },
-  form: {
-    marginTop: spacing.lg,
-  },
-  forgotPasswordLink: {
-    alignSelf: 'flex-end',
-    marginTop: spacing.sm,
-  },
-  forgotPasswordText: {
-    ...typography.body2,
-    color: colors.yellow,
-  },
-  loginButton: {
-    marginTop: spacing.md,
-  },
-  registerLink: {
-    alignItems: 'center',
-    marginTop: spacing.lg,
-  },
-  registerText: {
     ...typography.body2,
     color: colors.textSecondary,
-  },
-  registerTextBold: {
-    color: colors.yellow,
-    fontWeight: '600',
+    textAlign: 'center',
+    fontWeight: '500',
   },
 });
+
+
+

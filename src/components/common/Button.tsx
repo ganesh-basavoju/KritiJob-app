@@ -11,9 +11,9 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
-import {colors} from '../../theme/colors';
-import {spacing, borderRadius} from '../../theme/spacing';
-import {typography} from '../../theme/typography';
+import { colors } from '../../theme/colors';
+import { spacing, borderRadius } from '../../theme/spacing';
+import { typography } from '../../theme/typography';
 
 interface ButtonProps {
   title: string;
@@ -60,7 +60,7 @@ export const Button: React.FC<ButtonProps> = ({
       activeOpacity={0.7}>
       {loading ? (
         <ActivityIndicator
-          color={variant === 'primary' ? colors.navyDark : colors.yellow}
+          color={colors.white}
         />
       ) : (
         <Text style={textStyles}>{title}</Text>
@@ -73,39 +73,50 @@ const styles = StyleSheet.create({
   button: {
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
-    borderRadius: borderRadius.md,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 48,
+    minHeight: 52,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   primaryButton: {
-    backgroundColor: colors.yellow,
+    backgroundColor: colors.primary,
   },
   secondaryButton: {
-    backgroundColor: colors.backgroundTertiary,
+    backgroundColor: colors.secondary,
   },
   outlineButton: {
     backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: colors.yellow,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    elevation: 0,
+    shadowOpacity: 0,
   },
   disabledButton: {
     backgroundColor: colors.buttonDisabled,
-    opacity: 0.6,
+    opacity: 0.5,
+    elevation: 0,
   },
   text: {
     ...typography.button,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   primaryText: {
-    color: colors.navyDark,
+    color: colors.white,
   },
   secondaryText: {
-    color: colors.textPrimary,
+    color: colors.white,
   },
   outlineText: {
-    color: colors.yellow,
+    color: colors.primary,
   },
   disabledText: {
-    color: colors.textDisabled,
+    color: colors.textTertiary,
   },
 });
+
