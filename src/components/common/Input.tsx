@@ -11,9 +11,9 @@ import {
   TextInputProps,
   ViewStyle,
 } from 'react-native';
-import {colors} from '../../theme/colors';
-import {spacing, borderRadius} from '../../theme/spacing';
-import {typography} from '../../theme/typography';
+import { colors } from '../../theme/colors';
+import { spacing, borderRadius } from '../../theme/spacing';
+import { typography } from '../../theme/typography';
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -43,20 +43,22 @@ export const Input: React.FC<InputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   label: {
     ...typography.label,
     color: colors.textPrimary,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
+    fontWeight: '600',
+    fontSize: 13,
   },
   input: {
-    backgroundColor: colors.inputBackground,
-    borderWidth: 1,
-    borderColor: colors.inputBorder,
-    borderRadius: borderRadius.md,
+    backgroundColor: colors.backgroundSecondary,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: 14,
     paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.lg,
     color: colors.textPrimary,
     fontSize: 16,
   },
@@ -66,6 +68,8 @@ const styles = StyleSheet.create({
   errorText: {
     ...typography.caption,
     color: colors.error,
-    marginTop: spacing.xs,
+    marginTop: 4,
+    fontWeight: '500',
   },
 });
+

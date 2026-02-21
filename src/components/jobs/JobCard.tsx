@@ -1,89 +1,66 @@
-// ============================================
-// JOB CARD COMPONENT
-// ============================================
-
-import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {Job} from '../../types';
-import {colors} from '../../theme/colors';
-import {spacing, borderRadius, shadows} from '../../theme/spacing';
-import {typography} from '../../theme/typography';
-import {formatRelativeTime} from '../../utils/dateFormatter';
+import { Job } from '../../types';
+import { colors } from '../../theme/colors';
+import { spacing } from '../../theme/spacing';
+import { typography } from '../../theme/typography';
+import { Avatar } from '../common/Avatar';
 
 interface JobCardProps {
   job: Job;
   onPress: () => void;
 }
 
-export const JobCard: React.FC<JobCardProps> = ({job, onPress}) => {
-  const companyName = (job as any).companyId?.name || job.company?.name || 'Company';
-  const applicantsCount = job.applicationsCount || 0;
-  const skills = (job as any).skillsRequired || job.skills || [];
-  
+export const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const companyName = (job as any).company?.name || job.company || 'Unknown Company';
+  const salary = (job as any).salaryRange || job.salary;
+
+  // Checking if job is recent (within 7 days)
+  const isNew = new Date(job.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
   return (
     <TouchableOpacity
-      style={styles.card}
+      activeOpacity={0.7}
       onPress={onPress}
-      activeOpacity={0.7}>
-      {/* Company & Type Badge */}
-      <View style={styles.topRow}>
-        <Text style={styles.company}>{companyName}</Text>
-        <View style={styles.typeBadge}>
-          <Text style={styles.typeText}>{job.type}</Text>
-        </View>
-      </View>
-
-      {/* Job Title */}
-      <Text style={styles.title} numberOfLines={2}>{job.title}</Text>
-
-      {/* Details Grid */}
-      <View style={styles.detailsGrid}>
-        <View style={styles.detailItem}>
-          <Icon name="location" size={14} color={colors.yellow} />
-          <Text style={styles.detailText} numberOfLines={1}>{job.location}</Text>
-        </View>
-        <View style={styles.detailItem}>
-          <Icon name="briefcase" size={14} color={colors.yellow} />
-          <Text style={styles.detailText}>{(job as any).experienceLevel || job.experience}</Text>
-        </View>
-        {((job as any).salaryRange || job.salary) && (
-          <View style={styles.detailItem}>
-            <Icon name="cash" size={14} color={colors.yellow} />
-            <Text style={styles.detailText} numberOfLines={1}>{(job as any).salaryRange || job.salary}</Text>
-          </View>
-        )}
-      </View>
-
-      {/* Skills */}
-      {skills.length > 0 && (
-        <View style={styles.skillsContainer}>
-          <Text style={styles.skillsLabel}>Skills:</Text>
-          <View style={styles.skillsList}>
-            {skills.slice(0, 4).map((skill: string, index: number) => (
-              <View key={index} style={styles.skillTag}>
-                <Text style={styles.skillText}>{skill}</Text>
+      onPressIn={() => setIsHovered(true)}
+      onPressOut={() => setIsHovered(false)}
+      style={[
+        styles.card,
+        isHovered && styles.cardGlow
+      ]}>
+      <View style={styles.header}>
+        <Avatar name={companyName} size={48} />
+        <View style={styles.info}>
+          <View style={styles.titleRow}>
+            <Text style={styles.title} numberOfLines={1}>{job.title}</Text>
+            {isNew && (
+              <View style={styles.newBadge}>
+                <Text style={styles.newBadgeText}>NEW</Text>
               </View>
-            ))}
-            {skills.length > 4 && (
-              <Text style={styles.moreSkills}>+{skills.length - 4} more</Text>
             )}
           </View>
+          <Text style={styles.company} numberOfLines={1}>{companyName}</Text>
         </View>
-      )}
+        <Icon name="bookmark-outline" size={22} color={colors.textSecondary} />
+      </View>
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        <View style={styles.footerItem}>
-          <Icon name="time-outline" size={14} color={colors.textTertiary} />
-          <Text style={styles.footerText}>{formatRelativeTime(job.createdAt)}</Text>
+      <View style={styles.details}>
+        <View style={styles.detailItem}>
+          <Icon name="location-outline" size={16} color={colors.primary} />
+          <Text style={styles.detailText}>{job.location}</Text>
         </View>
-        <View style={styles.footerItem}>
-          <Icon name="people-outline" size={14} color={colors.textTertiary} />
-          <Text style={styles.footerText}>
-            {applicantsCount} {applicantsCount === 1 ? 'applicant' : 'applicants'}
-          </Text>
+        <View style={styles.detailItem}>
+          <Icon name="briefcase-outline" size={16} color={colors.primary} />
+          <Text style={styles.detailText}>{job.type}</Text>
         </View>
+        {salary && (
+          <View style={styles.detailItem}>
+            <Icon name="cash-outline" size={16} color={colors.primary} />
+            <Text style={styles.detailText}>{salary}</Text>
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -91,129 +68,81 @@ export const JobCard: React.FC<JobCardProps> = ({job, onPress}) => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.card,
-    borderRadius: borderRadius.lg,
+    backgroundColor: colors.white,
     padding: spacing.lg,
+    borderRadius: 20,
     marginBottom: spacing.md,
-    ...shadows.lg,
     borderWidth: 1,
-    borderColor: colors.border + '30',
+    borderColor: colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 1,
   },
-  topRow: {
+  cardGlow: {
+    borderColor: colors.glow,
+    borderWidth: 1.5,
+    shadowColor: colors.glow,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  info: {
+    flex: 1,
+    marginLeft: spacing.md,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  title: {
+    ...typography.body1,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    fontSize: 16,
+    flex: 1,
+  },
+  newBadge: {
+    backgroundColor: colors.secondaryLight,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  newBadgeText: {
+    ...typography.caption,
+    fontSize: 9,
+    fontWeight: '800',
+    color: colors.primaryDark,
   },
   company: {
     ...typography.body2,
     color: colors.textSecondary,
-    fontWeight: '500',
-    flex: 1,
+    marginTop: 2,
   },
-  typeBadge: {
-    backgroundColor: colors.yellow + '20',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.full,
-    borderWidth: 1,
-    borderColor: colors.yellow + '40',
-  },
-  typeText: {
-    ...typography.caption,
-    color: colors.yellow,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    fontSize: 10,
-    letterSpacing: 0.5,
-  },
-  title: {
-    ...typography.h5,
-    color: colors.textPrimary,
-    marginBottom: spacing.md,
-    fontWeight: '700',
-    lineHeight: 24,
-  },
-  detailsGrid: {
+  details: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: spacing.md,
-    gap: spacing.sm,
+    gap: spacing.lg,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.divider,
   },
   detailItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
-    backgroundColor: colors.backgroundTertiary,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.sm,
-    minWidth: '30%',
-    flex: 1,
+    gap: 6,
   },
   detailText: {
     ...typography.caption,
     color: colors.textSecondary,
-    fontWeight: '500',
-    flex: 1,
-  },
-  skillsContainer: {
-    marginBottom: spacing.md,
-    paddingTop: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.border + '30',
-  },
-  skillsLabel: {
-    ...typography.caption,
-    color: colors.textTertiary,
-    fontWeight: '600',
-    marginBottom: spacing.xs,
-    textTransform: 'uppercase',
-    fontSize: 10,
-    letterSpacing: 0.5,
-  },
-  skillsList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.xs,
-  },
-  skillTag: {
-    backgroundColor: colors.backgroundSecondary,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: borderRadius.sm,
-    borderWidth: 1,
-    borderColor: colors.border + '50',
-  },
-  skillText: {
-    ...typography.caption,
-    color: colors.textPrimary,
-    fontSize: 11,
-    fontWeight: '500',
-  },
-  moreSkills: {
-    ...typography.caption,
-    color: colors.textTertiary,
-    fontSize: 11,
-    fontStyle: 'italic',
-    paddingVertical: 4,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.border + '30',
-  },
-  footerItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  footerText: {
-    ...typography.caption,
-    color: colors.textTertiary,
-    fontSize: 11,
+    fontSize: 12,
   },
 });

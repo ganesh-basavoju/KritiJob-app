@@ -1,7 +1,7 @@
 // ============================================
 // USER PROFILE SCREEN - ENHANCED UI
 // ============================================
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -15,9 +15,9 @@ import {
   Linking,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {useDispatch, useSelector} from 'react-redux';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {launchImageLibrary} from 'react-native-image-picker';
+import { useDispatch, useSelector } from 'react-redux';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { launchImageLibrary } from 'react-native-image-picker';
 import * as DocumentPicker from '@react-native-documents/picker';
 import {
   fetchCandidateProfile,
@@ -26,18 +26,18 @@ import {
   uploadResume,
   deleteResume,
 } from '../../redux/slices/candidateSlice';
-import {logout} from '../../redux/slices/authSlice';
-import {AppDispatch, RootState} from '../../redux/store';
-import {Button} from '../../components/common/Button';
-import {Loader} from '../../components/common/Loader';
-import {colors} from '../../theme/colors';
-import {spacing, borderRadius} from '../../theme/spacing';
-import {typography} from '../../theme/typography';
+import { logout } from '../../redux/slices/authSlice';
+import { AppDispatch, RootState } from '../../redux/store';
+import { Button } from '../../components/common/Button';
+import { Loader } from '../../components/common/Loader';
+import { colors } from '../../theme/colors';
+import { spacing, borderRadius } from '../../theme/spacing';
+import { typography } from '../../theme/typography';
 
-export const UserProfileScreen: React.FC = ({navigation}) => {
+export const UserProfileScreen: React.FC<any> = ({ navigation }) => {
   const dispatch = useDispatch<AppDispatch>();
-  const {profile, loading} = useSelector((state: RootState) => state.candidate);
-  const {user} = useSelector((state: RootState) => state.auth);
+  const { profile, loading } = useSelector((state: RootState) => state.candidate);
+  const { user } = useSelector((state: RootState) => state.auth);
 
   const [isEditingAbout, setIsEditingAbout] = useState(false);
   const [isEditingSkills, setIsEditingSkills] = useState(false);
@@ -115,7 +115,7 @@ export const UserProfileScreen: React.FC = ({navigation}) => {
 
   const handleSaveAbout = async () => {
     try {
-      await dispatch(updateCandidateProfile({about: editedAbout})).unwrap();
+      await dispatch(updateCandidateProfile({ about: editedAbout })).unwrap();
       setIsEditingAbout(false);
       Alert.alert('Success', 'About section updated');
     } catch (error: any) {
@@ -129,7 +129,7 @@ export const UserProfileScreen: React.FC = ({navigation}) => {
         .split(',')
         .map(s => s.trim())
         .filter(s => s.length > 0);
-      await dispatch(updateCandidateProfile({skills: skillsArray})).unwrap();
+      await dispatch(updateCandidateProfile({ skills: skillsArray })).unwrap();
       setIsEditingSkills(false);
       Alert.alert('Success', 'Skills updated');
     } catch (error: any) {
@@ -139,7 +139,7 @@ export const UserProfileScreen: React.FC = ({navigation}) => {
 
   const handleSaveContact = async () => {
     try {
-      await dispatch(updateCandidateProfile({phone: editedPhone})).unwrap();
+      await dispatch(updateCandidateProfile({ phone: editedPhone })).unwrap();
       setIsEditingContact(false);
       Alert.alert('Success', 'Contact information updated');
     } catch (error: any) {
@@ -149,7 +149,7 @@ export const UserProfileScreen: React.FC = ({navigation}) => {
 
   const handleSaveTitle = async () => {
     try {
-      await dispatch(updateCandidateProfile({title: editedTitle})).unwrap();
+      await dispatch(updateCandidateProfile({ title: editedTitle })).unwrap();
       setIsEditingTitle(false);
       Alert.alert('Success', 'Title updated');
     } catch (error: any) {
@@ -159,7 +159,7 @@ export const UserProfileScreen: React.FC = ({navigation}) => {
 
   const handleSaveLocation = async () => {
     try {
-      await dispatch(updateCandidateProfile({location: editedLocation})).unwrap();
+      await dispatch(updateCandidateProfile({ location: editedLocation })).unwrap();
       setIsEditingLocation(false);
       Alert.alert('Success', 'Location updated');
     } catch (error: any) {
@@ -187,7 +187,7 @@ export const UserProfileScreen: React.FC = ({navigation}) => {
 
       const formData = new FormData();
       formData.append('resume', {
-        uri: file.fileCopyUri || file.uri,
+        uri: (file as any).fileCopyUri || file.uri,
         type: file.type || 'application/pdf',
         name: file.name || 'resume.pdf',
       } as any);
@@ -247,10 +247,9 @@ export const UserProfileScreen: React.FC = ({navigation}) => {
 
   console.log('Profile data:', {
     profileAvatarUrl: profile?.avatarUrl,
-    profileAvatar: profile?.avatar,
-    userAvatar: user?.avatar,
-    userAvatarUrl: user?.avatarUrl,
+    userAvatar: (user as any)?.avatar,
   });
+
 
   const getInitials = (name?: string) => {
     if (!name) return '';
@@ -268,7 +267,7 @@ export const UserProfileScreen: React.FC = ({navigation}) => {
           <View style={styles.avatarSection}>
             <View style={styles.avatarWrapper}>
               {profile?.avatarUrl ? (
-                <Image source={{uri: profile.avatarUrl}} style={styles.avatarImage} />
+                <Image source={{ uri: profile.avatarUrl }} style={styles.avatarImage} />
               ) : (
                 <View style={styles.avatar}>
                   <Text style={styles.avatarText}>{getInitials(user?.name)}</Text>
@@ -297,7 +296,7 @@ export const UserProfileScreen: React.FC = ({navigation}) => {
                     <Icon name="close-circle" size={20} color={colors.textSecondary} />
                   </TouchableOpacity>
                   <TouchableOpacity onPress={handleSaveTitle}>
-                    <Icon name="checkmark-circle" size={20} color={colors.yellow} />
+                    <Icon name="checkmark-circle" size={20} color={colors.green} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -329,7 +328,7 @@ export const UserProfileScreen: React.FC = ({navigation}) => {
                     <Icon name="close-circle" size={20} color={colors.textSecondary} />
                   </TouchableOpacity>
                   <TouchableOpacity onPress={handleSaveLocation}>
-                    <Icon name="checkmark-circle" size={20} color={colors.yellow} />
+                    <Icon name="checkmark-circle" size={20} color={colors.green} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -352,12 +351,12 @@ export const UserProfileScreen: React.FC = ({navigation}) => {
           <View style={styles.sectionHeader}>
             <View style={styles.sectionHeaderLeft}>
               <View style={styles.iconBadge}>
-                <Icon name="person-outline" size={18} color={colors.yellow} />
+                <Icon name="person-outline" size={18} color={colors.green} />
               </View>
               <Text style={styles.sectionTitle}>About</Text>
             </View>
             <TouchableOpacity onPress={() => setIsEditingAbout(!isEditingAbout)}>
-              <Icon name={isEditingAbout ? "close" : "create-outline"} size={20} color={colors.yellow} />
+              <Icon name={isEditingAbout ? "close" : "create-outline"} size={20} color={colors.green} />
             </TouchableOpacity>
           </View>
 
@@ -393,12 +392,12 @@ export const UserProfileScreen: React.FC = ({navigation}) => {
           <View style={styles.sectionHeader}>
             <View style={styles.sectionHeaderLeft}>
               <View style={styles.iconBadge}>
-                <Icon name="bulb-outline" size={18} color={colors.yellow} />
+                <Icon name="bulb-outline" size={18} color={colors.green} />
               </View>
               <Text style={styles.sectionTitle}>Skills</Text>
             </View>
             <TouchableOpacity onPress={() => setIsEditingSkills(!isEditingSkills)}>
-              <Icon name={isEditingSkills ? "close" : "create-outline"} size={20} color={colors.yellow} />
+              <Icon name={isEditingSkills ? "close" : "create-outline"} size={20} color={colors.green} />
             </TouchableOpacity>
           </View>
 
@@ -440,12 +439,12 @@ export const UserProfileScreen: React.FC = ({navigation}) => {
           <View style={styles.sectionHeader}>
             <View style={styles.sectionHeaderLeft}>
               <View style={styles.iconBadge}>
-                <Icon name="document-text-outline" size={18} color={colors.yellow} />
+                <Icon name="document-text-outline" size={18} color={colors.green} />
               </View>
               <Text style={styles.sectionTitle}>Resume</Text>
             </View>
             <TouchableOpacity onPress={handleUploadResume}>
-              <Icon name="add-circle" size={24} color={colors.yellow} />
+              <Icon name="add-circle" size={24} color={colors.green} />
             </TouchableOpacity>
           </View>
 
@@ -458,7 +457,7 @@ export const UserProfileScreen: React.FC = ({navigation}) => {
                   onPress={() => handleOpenResume(resume.url)}>
                   <View style={styles.resumeInfo}>
                     <View style={styles.resumeIconWrapper}>
-                      <Icon name="document" size={24} color={colors.yellow} />
+                      <Icon name="document" size={24} color={colors.green} />
                     </View>
                     <View style={styles.resumeDetails}>
                       <Text style={styles.resumeName}>{resume.name || 'Resume.pdf'}</Text>
@@ -469,7 +468,7 @@ export const UserProfileScreen: React.FC = ({navigation}) => {
                   </View>
                   <TouchableOpacity
                     onPress={() => resume._id && handleDeleteResume(resume._id)}
-                    hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                     <Icon name="trash-outline" size={20} color={colors.error} />
                   </TouchableOpacity>
                 </TouchableOpacity>
@@ -493,12 +492,12 @@ export const UserProfileScreen: React.FC = ({navigation}) => {
           <View style={styles.sectionHeader}>
             <View style={styles.sectionHeaderLeft}>
               <View style={styles.iconBadge}>
-                <Icon name="call-outline" size={18} color={colors.yellow} />
+                <Icon name="call-outline" size={18} color={colors.green} />
               </View>
               <Text style={styles.sectionTitle}>Contact Information</Text>
             </View>
             <TouchableOpacity onPress={() => setIsEditingContact(!isEditingContact)}>
-              <Icon name={isEditingContact ? "close" : "create-outline"} size={20} color={colors.yellow} />
+              <Icon name={isEditingContact ? "close" : "create-outline"} size={20} color={colors.green} />
             </TouchableOpacity>
           </View>
 
@@ -553,12 +552,12 @@ export const UserProfileScreen: React.FC = ({navigation}) => {
         {/* Activity Section */}
         <View style={styles.activitySection}>
           <Text style={styles.activityTitle}>Activity</Text>
-          
+
           <TouchableOpacity
             style={styles.activityCard}
             onPress={() => navigation.navigate('SavedJobsList')}>
             <View style={styles.activityIconWrapper}>
-              <Icon name="bookmark" size={24} color={colors.yellow} />
+              <Icon name="bookmark" size={24} color={colors.green} />
             </View>
             <View style={styles.activityContent}>
               <Text style={styles.activityCardTitle}>Saved Jobs</Text>
@@ -571,7 +570,7 @@ export const UserProfileScreen: React.FC = ({navigation}) => {
             style={styles.activityCard}
             onPress={() => navigation.navigate('ApplicationsList')}>
             <View style={styles.activityIconWrapper}>
-              <Icon name="briefcase" size={24} color={colors.yellow} />
+              <Icon name="briefcase" size={24} color={colors.green} />
             </View>
             <View style={styles.activityContent}>
               <Text style={styles.activityCardTitle}>My Applications</Text>
@@ -618,13 +617,13 @@ const styles = StyleSheet.create({
     width: 110,
     height: 110,
     borderRadius: 55,
-    backgroundColor: colors.yellow,
+    backgroundColor: colors.green,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 4,
     borderColor: colors.white,
     shadowColor: colors.navyDark,
-    shadowOffset: {width: 0, height: 4},
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 8,
@@ -642,7 +641,7 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     borderColor: colors.white,
     shadowColor: colors.navyDark,
-    shadowOffset: {width: 0, height: 4},
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 8,
@@ -651,7 +650,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 2,
     right: 2,
-    backgroundColor: colors.yellow,
+    backgroundColor: colors.green,
     width: 36,
     height: 36,
     borderRadius: 18,
@@ -660,7 +659,7 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: colors.white,
     shadowColor: colors.navyDark,
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 4,
@@ -699,7 +698,7 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.md,
     marginBottom: spacing.md,
     shadowColor: colors.navyDark,
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 3,
@@ -746,7 +745,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.yellow + '20',
+    borderColor: colors.green + '20',
   },
   skillText: {
     ...typography.body2,
@@ -786,7 +785,7 @@ const styles = StyleSheet.create({
     minHeight: 100,
     textAlignVertical: 'top',
     borderWidth: 1,
-    borderColor: colors.yellow + '30',
+    borderColor: colors.green + '30',
     fontSize: 15,
   },
   phoneInput: {
@@ -808,7 +807,7 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     ...typography.body1,
-    color: colors.yellow,
+    color: colors.green,
     fontWeight: '700',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
@@ -823,7 +822,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     gap: spacing.sm,
     borderWidth: 1,
-    borderColor: colors.yellow + '30',
+    borderColor: colors.green + '30',
   },
   inlineInput: {
     flex: 1,
@@ -847,7 +846,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.yellow + '15',
+    borderColor: colors.green + '15',
   },
   resumeInfo: {
     flexDirection: 'row',
@@ -859,7 +858,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: colors.yellow + '20',
+    backgroundColor: colors.green + '20',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -925,7 +924,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.xl,
     marginBottom: spacing.sm,
     shadowColor: colors.navyDark,
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 3,
@@ -934,7 +933,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: colors.yellow + '20',
+    backgroundColor: colors.green + '20',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.md,
@@ -968,7 +967,7 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.md,
     marginBottom: spacing.xl * 2,
     shadowColor: colors.error,
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
