@@ -33,6 +33,13 @@ export interface UserProfile extends User {
   about?: string;
   phone?: string;
   avatarUrl?: string;
+  // Premium subscription fields
+  isPremium?: boolean;
+  subscriptionExpiresAt?: string;
+  monthlyApplications?: Array<{
+    month: string;
+    count: number;
+  }>;
 }
 
 export interface AuthTokens {
@@ -129,6 +136,63 @@ export interface ApiError {
   statusCode: number;
   errors?: Record<string, string[]>;
 }
+
+// ============================================
+// SUBSCRIPTION TYPES
+// ============================================
+
+export interface Subscription {
+  _id: string;
+  candidateId: string;
+  plan: 'premium';
+  status: 'active' | 'expired' | 'cancelled';
+  startDate: string;
+  endDate: string;
+  razorpayOrderId: string;
+  razorpayPaymentId?: string;
+  razorpaySignature?: string;
+  amount: number;
+  currency: string;
+  paymentStatus: 'pending' | 'completed' | 'failed';
+  autoRenew: boolean;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SubscriptionStatus {
+  isPremium: boolean;
+  subscriptionExpiresAt: string | null;
+  currentMonthApplications: number;
+  applicationLimit: number | 'unlimited';
+  activeSubscription: {
+    id: string;
+    startDate: string;
+    endDate: string;
+    status: string;
+  } | null;
+}
+
+export interface CreateOrderResponse {
+  orderId: string;
+  amount: number;
+  currency: string;
+  subscriptionId: string;
+  razorpayKeyId: string;
+}
+
+export interface VerifyPaymentRequest {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}
+
+export interface VerifyPaymentResponse {
+  subscriptionId: string;
+  status: string;
+  expiresAt: string;
+}
+
 
 export interface EmployerStats {
   activeJobs: number;

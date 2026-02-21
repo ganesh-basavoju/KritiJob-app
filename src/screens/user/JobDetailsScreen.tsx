@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { fetchJobById, saveJob, unsaveJob, addAppliedJobId } from '../../redux/slices/jobsSlice';
 import { applyForJob } from '../../redux/slices/applicationsSlice';
 import { fetchCandidateProfile } from '../../redux/slices/candidateSlice';
+import { fetchSubscriptionStatus } from '../../redux/slices/subscriptionSlice';
 import { AppDispatch, RootState } from '../../redux/store';
 import { Button } from '../../components/common/Button';
 import { Loader } from '../../components/common/Loader';
@@ -42,6 +43,7 @@ export const JobDetailsScreen: React.FC<any> = ({ navigation, route }) => {
   const { currentJob, currentJobLoading } = useSelector((state: RootState) => state.jobs);
   const { loading: applyLoading } = useSelector((state: RootState) => state.applications);
   const { profile } = useSelector((state: RootState) => state.candidate);
+  const { status: subscriptionStatus } = useSelector((state: RootState) => state.subscription);
   const [isSaved, setIsSaved] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
 
@@ -52,6 +54,7 @@ export const JobDetailsScreen: React.FC<any> = ({ navigation, route }) => {
         await checkSavedStatus();
         await checkApplicationStatus();
         await dispatch(fetchCandidateProfile());
+        await dispatch(fetchSubscriptionStatus());
       }
     };
     loadData();
@@ -105,6 +108,30 @@ export const JobDetailsScreen: React.FC<any> = ({ navigation, route }) => {
       ]);
       return;
     }
+
+    // Check subscription limit for non-premium users
+    if (subscriptionStatus && !subscriptionStatus.isPremium) {
+      const currentApplications = subscriptionStatus.currentMonthApplications;
+      const limit = subscriptionStatus.applicationLimit as number;
+      
+      if (currentApplications >= limit) {
+        Alert.alert(
+          'Application Limit Reached',
+          `You've reached your monthly limit of ${limit} applications. Upgrade to Premium for unlimited applications!`,
+          [
+            { text: 'Later', style: 'cancel' },
+            { 
+              text: 'Upgrade to Premium', 
+              onPress: () => navigation.navigate('Profile', {
+                screen: 'Subscription'
+              })
+            },
+          ]
+        );
+        return;
+      }
+    }
+
     // Check if user has uploaded a resume
     let resumeUrl = null;
     if (profile) {
@@ -130,7 +157,19 @@ export const JobDetailsScreen: React.FC<any> = ({ navigation, route }) => {
       return;
     }
 
-    Alert.alert('Apply for Job', 'Do you want to apply for this position?', [
+    // Show warning if close to limit (non-premium users)
+    let warningMessage = 'Do you want to apply for this position?';
+    if (subscriptionStatus && !subscriptionStatus.isPremium) {
+      const currentApplications = subscriptionStatus.currentMonthApplications;
+      const limit = subscriptionStatus.applicationLimit as number;
+      const remaining = limit - currentApplications;
+      
+      if (remaining <= 3 && remaining > 0) {
+        warningMessage = `You have ${remaining} application${remaining === 1 ? '' : 's'} remaining this month. Do you want to apply for this position?`;
+      }
+    }
+
+    Alert.alert('Apply for Job', warningMessage, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Apply', onPress: () => submitApplication(resumeUrl) },
     ]);
@@ -141,10 +180,30 @@ export const JobDetailsScreen: React.FC<any> = ({ navigation, route }) => {
     if (result.meta && result.meta.requestStatus === 'fulfilled') {
       setHasApplied(true);
       dispatch(addAppliedJobId(jobId)); // Update Redux state to remove from feed/saved
+      // Refresh subscription status to update application count
+      dispatch(fetchSubscriptionStatus());
       Alert.alert('Success', 'Application submitted successfully!');
     } else {
       const errorMessage = (result.payload as string) || 'Failed to submit application. Please try again.';
-      Alert.alert('Application Failed', errorMessage);
+      
+      // Check if error is about application limit
+      if (errorMessage.includes('limit') || errorMessage.includes('premium')) {
+        Alert.alert(
+          'Application Limit Reached',
+          errorMessage,
+          [
+            { text: 'Later', style: 'cancel' },
+            { 
+              text: 'Upgrade to Premium', 
+              onPress: () => navigation.navigate('Profile', {
+                screen: 'Subscription'
+              })
+            },
+          ]
+        );
+      } else {
+        Alert.alert('Application Failed', errorMessage);
+      }
     }
   };
 
