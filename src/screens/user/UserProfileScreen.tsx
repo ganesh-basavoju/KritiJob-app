@@ -26,6 +26,7 @@ import {
   uploadResume,
   deleteResume,
 } from '../../redux/slices/candidateSlice';
+import { fetchSubscriptionStatus } from '../../redux/slices/subscriptionSlice';
 import { logout } from '../../redux/slices/authSlice';
 import { AppDispatch, RootState } from '../../redux/store';
 import { Button } from '../../components/common/Button';
@@ -38,6 +39,7 @@ export const UserProfileScreen: React.FC<any> = ({ navigation }) => {
   const dispatch = useDispatch<AppDispatch>();
   const { profile, loading } = useSelector((state: RootState) => state.candidate);
   const { user } = useSelector((state: RootState) => state.auth);
+  const { status: subscriptionStatus } = useSelector((state: RootState) => state.subscription);
 
   const [isEditingAbout, setIsEditingAbout] = useState(false);
   const [isEditingSkills, setIsEditingSkills] = useState(false);
@@ -67,6 +69,7 @@ export const UserProfileScreen: React.FC<any> = ({ navigation }) => {
 
   const loadProfile = async () => {
     await dispatch(fetchCandidateProfile());
+    await dispatch(fetchSubscriptionStatus());
   };
 
   const handleLogout = async () => {
@@ -341,6 +344,22 @@ export const UserProfileScreen: React.FC<any> = ({ navigation }) => {
               <TouchableOpacity style={styles.infoItem} onPress={() => setIsEditingLocation(true)}>
                 <Icon name="location-outline" size={16} color={colors.textTertiary} style={styles.infoIcon} />
                 <Text style={styles.addText}>Add Location</Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Premium Badge/Subscription Section */}
+            {subscriptionStatus?.isPremium ? (
+              <View style={styles.premiumBadgeContainer}>
+                <Icon name="star" size={20} color={colors.warning} />
+                <Text style={styles.premiumText}>Premium Member</Text>
+              </View>
+            ) : (
+              <TouchableOpacity 
+                style={styles.upgradeButton} 
+                onPress={() => navigation.navigate('Subscription')}
+              >
+                <Icon name="star-outline" size={18} color={colors.primary} />
+                <Text style={styles.upgradeButtonText}>Upgrade to Premium</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -977,5 +996,39 @@ const styles = StyleSheet.create({
     color: colors.error,
     fontWeight: '700',
     fontSize: 16,
+  },
+  premiumBadgeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 193, 7, 0.1)',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.lg,
+    marginTop: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.warning,
+  },
+  premiumText: {
+    ...typography.body2,
+    color: colors.warning,
+    fontWeight: '700',
+    marginLeft: spacing.xs,
+  },
+  upgradeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.lg,
+    marginTop: spacing.md,
+  },
+  upgradeButtonText: {
+    ...typography.body2,
+    color: colors.white,
+    fontWeight: '700',
+    marginLeft: spacing.xs,
   },
 });
