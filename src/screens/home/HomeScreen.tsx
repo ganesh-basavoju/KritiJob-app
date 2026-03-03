@@ -63,15 +63,7 @@ export const HomeScreen: React.FC<any> = ({ navigation }) => {
             <TouchableOpacity onPress={() => navigation.navigate('Notifications')} style={styles.notificationBtn}>
               <Icon name="notifications-outline" size={24} color={colors.primary} />
             </TouchableOpacity>
-            {isAuthenticated && (
-              <TouchableOpacity onPress={handleLogout} disabled={authLoading}>
-                {authLoading ? (
-                  <ActivityIndicator size="small" color={colors.error} />
-                ) : (
-                  <Icon name="log-out-outline" size={24} color={colors.error} />
-                )}
-              </TouchableOpacity>
-            )}
+
           </View>
         </View>
 
@@ -98,18 +90,12 @@ export const HomeScreen: React.FC<any> = ({ navigation }) => {
         {
           isAuthenticated ? (
             <View style={styles.userStatsContainer}>
-              <View style={styles.userStatBox}>
+              {/* <View style={styles.userStatBox}>
                 <Text style={styles.userStatNumber}>12</Text>
                 <Text style={styles.userStatLabel}>Applied</Text>
-              </View>
-              <View style={styles.userStatBox}>
-                <Text style={styles.userStatNumber}>5</Text>
-                <Text style={styles.userStatLabel}>Interviews</Text>
-              </View>
-              <View style={styles.userStatBox}>
-                <Text style={styles.userStatNumber}>8</Text>
-                <Text style={styles.userStatLabel}>Saved</Text>
-              </View>
+              </View> */}
+
+
             </View>
           ) : (
             <View style={styles.heroBanner}>
@@ -166,7 +152,7 @@ export const HomeScreen: React.FC<any> = ({ navigation }) => {
         <View style={styles.statsSection}>
           <View style={styles.statCard}>
             <Icon name="briefcase" size={24} color={colors.primary} />
-            <Text style={styles.statNumber}>15,000+</Text>
+            <Text style={styles.statNumber}>15,00+</Text>
             <Text style={styles.statLabel}>Active Jobs</Text>
           </View>
           <View style={styles.statCard}>
@@ -176,7 +162,7 @@ export const HomeScreen: React.FC<any> = ({ navigation }) => {
           </View>
           <View style={styles.statCard}>
             <Icon name="people" size={24} color={colors.primary} />
-            <Text style={styles.statNumber}>50,000+</Text>
+            <Text style={styles.statNumber}>50,00+</Text>
             <Text style={styles.statLabel}>Success Stories</Text>
           </View>
         </View>
@@ -209,7 +195,7 @@ export const HomeScreen: React.FC<any> = ({ navigation }) => {
         </View>
 
 
-        {/* Popular Categories */}
+        
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <View>
