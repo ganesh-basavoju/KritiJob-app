@@ -11,7 +11,7 @@ export const jobsApi = {
     limit: number = 20,
     filters?: JobFilters,
   ): Promise<PaginatedResponse<Job>> {
-    const response = await axiosInstance.get('/jobs/feed', {
+    const response = await axiosInstance.get('/jobs/', {
       params: {page, limit, ...filters},
     });
     return response.data;
