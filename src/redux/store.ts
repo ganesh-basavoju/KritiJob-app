@@ -11,6 +11,7 @@ import applicationsReducer from './slices/applicationsSlice';
 import employerReducer from './slices/employerSlice';
 import companiesReducer from './slices/companiesSlice';
 import notificationsReducer from './slices/notificationsSlice';
+import subscriptionReducer from './slices/subscriptionSlice';
 
 export const store = configureStore({
   reducer: {
@@ -22,6 +23,7 @@ export const store = configureStore({
     employer: employerReducer,
     companies: companiesReducer,
     notifications: notificationsReducer,
+    subscription: subscriptionReducer,
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({

@@ -17,6 +17,8 @@ import { ApplicationDetailsScreen } from '../screens/user/ApplicationDetailsScre
 import { UserProfileScreen } from '../screens/user/UserProfileScreen';
 import { CompaniesListScreen } from '../screens/companies/CompaniesListScreen';
 import { CompanyDetailsScreen } from '../screens/companies/CompanyDetailsScreen';
+import { SubscriptionScreen } from '../screens/user/SubscriptionScreen';
+import { SubscriptionHistoryScreen } from '../screens/user/SubscriptionHistoryScreen';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { NotificationsScreen } from '../screens/notifications/NotificationsScreen';
@@ -153,6 +155,19 @@ const ProfileStack = () => {
         name="SavedJobsList"
         component={SavedJobsScreen}
         options={{ title: 'Saved Jobs' }}
+      />
+
+      {/* ✅ Subscription */}
+      <Stack.Screen
+        name="Subscription"
+        component={SubscriptionScreen}
+        options={{ title: 'Premium Subscription' }}
+      />
+
+      <Stack.Screen
+        name="SubscriptionHistory"
+        component={SubscriptionHistoryScreen}
+        options={{ title: 'Subscription History' }}
       />
 
       {/* ✅ Applications */}
